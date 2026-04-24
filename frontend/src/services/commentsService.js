@@ -1,4 +1,4 @@
-import { USE_MOCK_API, simulateDelay, simulateError } from '../config/api';
+import axiosInstance from '../config/api';
 
 import { mockComments } from '../data/comments';
 
@@ -8,12 +8,8 @@ import { mockComments } from '../data/comments';
  * @returns {Promise<Array>} Array of comments
  */
 export const getCommentsByPostId = async (postId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return mockComments.filter(comment => comment.postId === postId);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/comments/post/${postId}`);
+  return response.data.data;
 };
 
 /**
@@ -22,12 +18,8 @@ export const getCommentsByPostId = async (postId) => {
  * @returns {Promise<Object>} Comment object
  */
 export const getCommentById = async (id) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return mockComments.find(comment => comment.id === id);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/comments/${id}`);
+  return response.data.data;
 };
 
 /**
@@ -36,14 +28,8 @@ export const getCommentById = async (id) => {
  * @returns {Promise<Object>} Created comment
  */
 export const createComment = async (data) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const newComment = { id: Date.now(), ...data };
-    mockComments.push(newComment);
-    return newComment;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.post('/comments', data);
+  return response.data.data;
 };
 
 /**
@@ -53,17 +39,8 @@ export const createComment = async (data) => {
  * @returns {Promise<Object>} Updated comment
  */
 export const updateComment = async (id, data) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const index = mockComments.findIndex(comment => comment.id === id);
-    if (index !== -1) {
-      mockComments[index] = { ...mockComments[index], ...data };
-      return mockComments[index];
-    }
-    return null;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.put(`/comments/${id}`, data);
+  return response.data.data;
 };
 
 /**
@@ -72,15 +49,6 @@ export const updateComment = async (id, data) => {
  * @returns {Promise<boolean>} Success status
  */
 export const deleteComment = async (id) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const index = mockComments.findIndex(comment => comment.id === id);
-    if (index !== -1) {
-      mockComments.splice(index, 1);
-      return true;
-    }
-    return false;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.delete(`/comments/${id}`);
+  return response.data.data;
 };

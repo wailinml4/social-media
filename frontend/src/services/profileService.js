@@ -1,4 +1,4 @@
-import { USE_MOCK_API, simulateDelay, simulateError } from '../config/api';
+import axiosInstance from '../config/api';
 
 import { profileData } from '../data/profile';
 
@@ -7,12 +7,8 @@ import { profileData } from '../data/profile';
  * @returns {Promise<Object>} User profile data
  */
 export const getCurrentProfile = async () => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return profileData;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get('/users/me/profile');
+  return response.data.data;
 };
 
 /**
@@ -21,12 +17,8 @@ export const getCurrentProfile = async () => {
  * @returns {Promise<Object>} User profile data
  */
 export const getProfileById = async (userId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return profileData;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/users/${userId}/profile`);
+  return response.data.data;
 };
 
 /**
@@ -36,13 +28,8 @@ export const getProfileById = async (userId) => {
  * @returns {Promise<Object>} Updated profile
  */
 export const updateProfile = async (userId, data) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    profileData.user = { ...profileData.user, ...data };
-    return profileData;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.put(`/users/${userId}/profile`, data);
+  return response.data.data;
 };
 
 /**
@@ -53,12 +40,8 @@ export const updateProfile = async (userId, data) => {
  * @returns {Promise<Array>} Array of posts
  */
 export const getUserPosts = async ({ offset = 0, limit = 10 } = {}) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return profileData.posts.slice(offset, offset + limit);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/users/posts?offset=${offset}&limit=${limit}`);
+  return response.data.data;
 };
 
 /**
@@ -69,10 +52,6 @@ export const getUserPosts = async ({ offset = 0, limit = 10 } = {}) => {
  * @returns {Promise<Array>} Array of bookmarks
  */
 export const getUserBookmarks = async ({ offset = 0, limit = 10 } = {}) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return profileData.bookmarks.slice(offset, offset + limit);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/users/bookmarks?offset=${offset}&limit=${limit}`);
+  return response.data.data;
 };

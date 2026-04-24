@@ -2,12 +2,13 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
 import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation';
+import { useAuth } from '../../context/AuthContext';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
-  
+  const { forgotPassword, isSendingForgotPassword, error } = useAuth();
+
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -17,11 +18,12 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await forgotPassword(email);
       setIsSent(true);
-    }, 1500);
+    } catch (err) {
+      // Error is handled by context
+    }
   };
 
   return (
@@ -62,12 +64,12 @@ const ForgotPassword = () => {
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSendingForgotPassword}
                 onMouseEnter={handleButtonHover}
                 onMouseLeave={handleButtonLeave}
                 className="auth-stagger w-full mt-2 bg-primary text-white rounded-2xl py-3.5 font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden relative"
               >
-                {isLoading ? (
+                {isSendingForgotPassword ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
@@ -76,6 +78,12 @@ const ForgotPassword = () => {
                   </>
                 )}
               </button>
+
+              {error && (
+                <div className="mt-4 text-center text-sm text-red-400">
+                  {error}
+                </div>
+              )}
             </form>
           </>
         ) : (
