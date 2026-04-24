@@ -1,4 +1,4 @@
-import { USE_MOCK_API, simulateDelay, simulateError } from '../config/api';
+import axiosInstance from '../config/api';
 
 import { storiesData } from '../data/stories';
 
@@ -7,12 +7,8 @@ import { storiesData } from '../data/stories';
  * @returns {Promise<Array>} Array of stories
  */
 export const getAllStories = async () => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return storiesData;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get('/stories');
+  return response.data.data;
 };
 
 /**
@@ -21,12 +17,8 @@ export const getAllStories = async () => {
  * @returns {Promise<Object>} Story object
  */
 export const getStoryById = async (storyId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return storiesData.find(story => story.id === storyId);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/stories/${storyId}`);
+  return response.data.data;
 };
 
 /**
@@ -35,16 +27,8 @@ export const getStoryById = async (storyId) => {
  * @returns {Promise<Object>} Updated story
  */
 export const markStoryAsSeen = async (storyId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const story = storiesData.find(s => s.id === storyId);
-    if (story) {
-      story.seen = true;
-    }
-    return story;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.post(`/stories/${storyId}/seen`);
+  return response.data.data;
 };
 
 /**
@@ -53,14 +37,8 @@ export const markStoryAsSeen = async (storyId) => {
  * @returns {Promise<Object>} Created story
  */
 export const createStory = async (data) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const newStory = { id: `story_${Date.now()}`, ...data };
-    storiesData.unshift(newStory);
-    return newStory;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.post('/stories', data);
+  return response.data.data;
 };
 
 /**
@@ -69,15 +47,6 @@ export const createStory = async (data) => {
  * @returns {Promise<boolean>} Success status
  */
 export const deleteStory = async (storyId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const index = storiesData.findIndex(story => story.id === storyId);
-    if (index !== -1) {
-      storiesData.splice(index, 1);
-      return true;
-    }
-    return false;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.delete(`/stories/${storyId}`);
+  return response.data.data;
 };

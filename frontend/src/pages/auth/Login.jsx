@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoggingIn, error } = useAuth();
+  const navigate = useNavigate();
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -17,11 +19,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    try {
+      await login(email, password);
+      navigate('/');
+    } catch (err) {
+      // Error is handled by context
+    }
   };
 
   return (
@@ -83,12 +86,12 @@ const Login = () => {
           <button
             ref={buttonRef}
             type="submit"
-            disabled={isLoading}
+            disabled={isLoggingIn}
             onMouseEnter={() => handleButtonHover(buttonRef.current)}
             onMouseLeave={() => handleButtonLeave(buttonRef.current)}
             className="auth-stagger w-full mt-2 bg-primary text-white rounded-2xl py-3.5 font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden relative"
           >
-            {isLoading ? (
+            {isLoggingIn ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
@@ -97,6 +100,12 @@ const Login = () => {
               </>
             )}
           </button>
+
+          {error && (
+            <div className="mt-4 text-center text-sm text-red-400">
+              {error}
+            </div>
+          )}
         </form>
 
         <div className="auth-stagger mt-8 text-center">

@@ -2,14 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Check, ArrowRight } from 'lucide-react';
 import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation';
+import { useAuth } from '../../context/AuthContext';
 
 const VerifyEmail = () => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const { verifyEmail, resendVerificationEmail, isVerifyingEmail, isResendingVerificationEmail, error, user } = useAuth();
   const inputsRef = useRef([]);
   const navigate = useNavigate();
-  
+
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -19,7 +20,7 @@ const VerifyEmail = () => {
 
   const handleChange = (index, value) => {
     if (isNaN(value)) return;
-    
+
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
@@ -36,19 +37,55 @@ const VerifyEmail = () => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+    const pastedCode = pastedData.split('').slice(0, 6);
+
+    if (pastedCode.some(char => isNaN(char))) return;
+
+    const newCode = [...code];
+    pastedCode.forEach((char, index) => {
+      if (index < 6) {
+        newCode[index] = char;
+      }
+    });
+    setCode(newCode);
+
+    // Focus the last filled input or the next empty one
+    const lastIndex = Math.min(pastedCode.length, 5);
+    inputsRef.current[lastIndex]?.focus();
+
+    // Auto-submit if all 6 digits are pasted
+    if (pastedCode.length === 6) {
+      setTimeout(() => {
+        handleSubmit(e);
+      }, 100);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (code.join('').length !== 6) return;
 
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await verifyEmail(code.join(''));
       setIsVerified(true);
 
       setTimeout(() => {
         navigate('/');
       }, 2000);
-    }, 1500);
+    } catch (err) {
+      // Error is handled by context
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await resendVerificationEmail(user?.email);
+    } catch (err) {
+      // Error is handled by context
+    }
   };
 
   return (
@@ -83,6 +120,7 @@ const VerifyEmail = () => {
                     value={digit}
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
                     className="w-12 h-14 bg-white/[0.03] border border-white/10 rounded-2xl text-center text-xl text-white font-medium outline-none focus:border-primary/50 focus:bg-primary/[0.02] transition-all duration-300"
                   />
                 ))}
@@ -90,12 +128,12 @@ const VerifyEmail = () => {
 
               <button
                 type="submit"
-                disabled={isLoading || code.join('').length !== 6}
+                disabled={isVerifyingEmail || code.join('').length !== 6}
                 onMouseEnter={handleButtonHover}
                 onMouseLeave={handleButtonLeave}
                 className="auth-stagger w-full mt-2 bg-primary text-white rounded-2xl py-3.5 font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden relative"
               >
-                {isLoading ? (
+                {isVerifyingEmail ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
@@ -104,13 +142,23 @@ const VerifyEmail = () => {
                   </>
                 )}
               </button>
+
+              {error && (
+                <div className="mt-4 text-center text-sm text-red-400">
+                  {error}
+                </div>
+              )}
             </form>
 
             <div className="auth-stagger mt-8 text-center">
               <p className="text-sm text-text-dim">
                 Didn't receive a code?{' '}
-                <button className="text-white font-medium hover:text-primary transition-colors">
-                  Resend
+                <button
+                  onClick={handleResend}
+                  disabled={isResendingVerificationEmail}
+                  className="text-white font-medium hover:text-primary transition-colors disabled:opacity-50"
+                >
+                  {isResendingVerificationEmail ? 'Sending...' : 'Resend'}
                 </button>
               </p>
             </div>

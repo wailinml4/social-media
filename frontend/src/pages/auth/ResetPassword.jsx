@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Lock, ArrowRight } from 'lucide-react';
 import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation';
+import { useAuth } from '../../context/AuthContext';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { resetPassword, isResettingPassword, error } = useAuth();
   const navigate = useNavigate();
-  
+  const { token } = useParams();
+
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -19,16 +21,15 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      // Basic error animation
-      // gsap.to('.password-fields', { x: [-10, 10, -10, 10, 0], duration: 0.4, ease: 'power2.inOut' });
       return;
     }
 
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await resetPassword(token, password);
       navigate('/login');
-    }, 1500);
+    } catch (err) {
+      // Error is handled by context
+    }
   };
 
   return (
@@ -88,12 +89,12 @@ const ResetPassword = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isResettingPassword}
             onMouseEnter={handleButtonHover}
             onMouseLeave={handleButtonLeave}
             className="auth-stagger w-full mt-2 bg-primary text-white rounded-2xl py-3.5 font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden relative"
           >
-            {isLoading ? (
+            {isResettingPassword ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
@@ -102,6 +103,12 @@ const ResetPassword = () => {
               </>
             )}
           </button>
+
+          {error && (
+            <div className="mt-4 text-center text-sm text-red-400">
+              {error}
+            </div>
+          )}
         </form>
 
       </div>

@@ -1,30 +1,16 @@
-import axios from 'axios';
+import axios from "axios"
 
-const USE_MOCK_API = true;
-const BASE_URL = 'http://localhost:3000/api';
-const MOCK_DELAY = 800;
+const axiosInstance = axios.create({
+	baseURL: "http://localhost:3000/api",
+	withCredentials: true,
+})
 
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+axiosInstance.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		const message = error.response?.data?.message || error.message || "API Error"
+		return Promise.reject(new Error(message))
+	}
+)
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
-
-const simulateDelay = () => new Promise((resolve) => setTimeout(resolve, MOCK_DELAY));
-
-const simulateError = (errorRate = 0.05) => {
-  if (Math.random() < errorRate) {
-    throw new Error('Simulated API error');
-  }
-};
-
-export { api, USE_MOCK_API, simulateDelay, simulateError };
+export default axiosInstance

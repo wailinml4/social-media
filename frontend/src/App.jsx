@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import Bookmarks from './pages/Bookmarks';
@@ -19,6 +19,25 @@ import EditProfileModal from './components/profile/EditProfileModal';
 import Sidebar from './components/layout/Sidebar';
 
 import { ModalProvider } from './context/ModalContext';
+import { useAuth } from './context/AuthContext';
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isCheckingAuth } = useAuth();
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
   const location = useLocation()
@@ -52,18 +71,18 @@ const App = () => {
         <div className={`relative z-10 ${isFullWidthPage ? 'w-full' : isMessagesPage ? 'flex-1 w-full flex flex-col min-w-0' : 'flex-1 max-w-[1050px] flex flex-col min-w-0'}`}>
           <main className={isFullWidthPage ? '' : 'flex-1 w-full'}>
             <Routes>
-              <Route path="/"                  element={<Home />} />
               <Route path="/landing"           element={<Landing />} />
               <Route path="/login"             element={<Login />} />
               <Route path="/signup"            element={<SignUp />} />
               <Route path="/forgot-password"   element={<ForgotPassword />} />
-              <Route path="/reset-password"    element={<ResetPassword />} />
+              <Route path="/reset-password/:token"    element={<ResetPassword />} />
               <Route path="/verify-email"      element={<VerifyEmail />} />
-              <Route path="/messages"          element={<Messages />} />
-              <Route path="/notifications"     element={<Notifications />} />
-              <Route path="/bookmarks"         element={<Bookmarks />} />
-              <Route path="/profile"           element={<Profile />} />
-              <Route path="/profile/:username" element={<Profile />} />
+              <Route path="/"                  element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/bookmarks"         element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
+              <Route path="/profile"           element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             </Routes>
           </main>
         </div>

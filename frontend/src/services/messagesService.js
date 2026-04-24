@@ -1,4 +1,4 @@
-import { USE_MOCK_API, simulateDelay, simulateError } from '../config/api';
+import axiosInstance from '../config/api';
 
 import { currentUser, mockChats, mockMessages } from '../data/messages';
 
@@ -7,12 +7,8 @@ import { currentUser, mockChats, mockMessages } from '../data/messages';
  * @returns {Promise<Array>} Array of chats
  */
 export const getAllChats = async () => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return mockChats;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get('/chats');
+  return response.data.data;
 };
 
 /**
@@ -21,12 +17,8 @@ export const getAllChats = async () => {
  * @returns {Promise<Object>} Chat object
  */
 export const getChatById = async (chatId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return mockChats.find(chat => chat.id === chatId);
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/chats/${chatId}`);
+  return response.data.data;
 };
 
 /**
@@ -35,12 +27,8 @@ export const getChatById = async (chatId) => {
  * @returns {Promise<Array>} Array of messages
  */
 export const getChatMessages = async (chatId) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return mockMessages[chatId] || [];
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get(`/chats/${chatId}/messages`);
+  return response.data.data;
 };
 
 /**
@@ -50,17 +38,8 @@ export const getChatMessages = async (chatId) => {
  * @returns {Promise<Object>} Created message
  */
 export const sendMessage = async (chatId, data) => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    const newMessage = { id: `m${Date.now()}`, senderId: currentUser.id, ...data };
-    if (!mockMessages[chatId]) {
-      mockMessages[chatId] = [];
-    }
-    mockMessages[chatId].push(newMessage);
-    return newMessage;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.post(`/chats/${chatId}/messages`, data);
+  return response.data.data;
 };
 
 /**
@@ -68,10 +47,6 @@ export const sendMessage = async (chatId, data) => {
  * @returns {Promise<Object>} Current user data
  */
 export const getCurrentUser = async () => {
-  if (USE_MOCK_API) {
-    await simulateDelay();
-    simulateError();
-    return currentUser;
-  }
-  // Real API call would go here
+  const response = await axiosInstance.get('/users/me');
+  return response.data.data;
 };

@@ -1,11 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { Bell, Bookmark, Home, MessageCircle, MoreHorizontal, Plus, Search, User, Zap } from 'lucide-react';
+import { Bell, Bookmark, Home, MessageCircle, MoreHorizontal, Plus, Search, User, Zap, LogOut } from 'lucide-react';
 
 import { useModal } from '../../context/ModalContext';
-import { profileData } from '../../data/profile';
+import { useAuth } from '../../context/AuthContext';
 import { useSidebarAnimation } from '../../animations/useSidebarAnimation';
 
 const NAV_ITEMS = [
@@ -66,7 +66,8 @@ const SidebarItem = ({ to, icon: Icon, label, active, onClick, fillWhenActive = 
 
 // ── Main sidebar ──────────────────────────────────────────────────────────────
 const Sidebar = () => {
-  const { user } = profileData
+  const { user, logout, isLoggingOut } = useAuth()
+  const navigate = useNavigate()
   const location  = useLocation()
   const currentPath = location.pathname
   const { isCreatePostOpen, openCreatePostModal } = useModal()
@@ -75,6 +76,15 @@ const Sidebar = () => {
   const labelsRef    = useRef([])
 
   const { expand, collapse, collectLabels, COLLAPSED_W, EXPANDED_W } = useSidebarAnimation(asideRef, labelsRef)
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/login')
+    } catch (err) {
+      // Error is handled by context
+    }
+  }
 
   return (
     <aside
@@ -123,20 +133,60 @@ const Sidebar = () => {
         </nav>
         {/* User footer */}
         <div className="border-t border-white/10 pt-4 flex-shrink-0">
-          <button className="flex items-center gap-4 w-full px-[14px] py-2 rounded-2xl
-                             hover:bg-white/[0.04] transition-colors duration-200 group">
-            <div className="w-[44px] h-[44px] flex-shrink-0 rounded-full overflow-hidden
-                            border border-white/10 group-hover:border-white/20 transition-colors">
-              <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-            </div>
-            <div className="sidebar-label flex items-center justify-between flex-1 min-w-0 opacity-0 translate-x-[-6px] overflow-hidden" style={{ width: 0 }}>
-              <div className="text-left min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-                <p className="text-xs text-white/35 truncate">@{user.handle.replace('@', '')}</p>
+          {user ? (
+            <button className="flex items-center gap-4 w-full px-[14px] py-2 rounded-2xl
+                               hover:bg-white/[0.04] transition-colors duration-200 group">
+              <div className="w-[44px] h-[44px] flex-shrink-0 rounded-full overflow-hidden
+                              border border-white/10 group-hover:border-white/20 transition-colors">
+                <img src={user.avatar || '/default-avatar.png'} alt={user.fullName} className="w-full h-full object-cover" />
               </div>
-              <MoreHorizontal className="w-4 h-4 text-white/25 group-hover:text-white/60 transition-colors flex-shrink-0" />
-            </div>
-          </button>
+              <div className="sidebar-label flex items-center justify-between flex-1 min-w-0 opacity-0 translate-x-[-6px] overflow-hidden" style={{ width: 0 }}>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{user.fullName}</p>
+                  <p className="text-xs text-white/35 truncate">@{user.username || user.email?.split('@')[0]}</p>
+                </div>
+                <MoreHorizontal className="w-4 h-4 text-white/25 group-hover:text-white/60 transition-colors flex-shrink-0" />
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="flex items-center gap-4 w-full px-[14px] py-2 rounded-2xl
+                                 hover:bg-white/[0.04] transition-colors duration-200 group"
+            >
+              <div className="w-[44px] h-[44px] flex-shrink-0 rounded-full bg-white/10
+                              border border-white/10 group-hover:border-white/20 transition-colors
+                              flex items-center justify-center">
+                <User className="w-5 h-5 text-white/40" />
+              </div>
+              <div className="sidebar-label flex items-center justify-between flex-1 min-w-0 opacity-0 translate-x-[-6px] overflow-hidden" style={{ width: 0 }}>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-semibold text-white">Sign in</p>
+                </div>
+              </div>
+            </button>
+          )}
+          {user && (
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="flex items-center gap-4 w-full px-[14px] py-2 rounded-2xl mt-2
+                                 hover:bg-white/[0.04] transition-colors duration-200 group disabled:opacity-50"
+            >
+              <div className="w-[44px] h-[44px] flex-shrink-0 rounded-full bg-white/10
+                              border border-white/10 group-hover:border-white/20 transition-colors
+                              flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-white/40 group-hover:text-white/60" />
+              </div>
+              <div className="sidebar-label flex items-center justify-between flex-1 min-w-0 opacity-0 translate-x-[-6px] overflow-hidden" style={{ width: 0 }}>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-medium text-white/60 group-hover:text-white">
+                    {isLoggingOut ? 'Logging out...' : 'Log out'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          )}
         </div>
 
       </div>
