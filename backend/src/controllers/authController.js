@@ -11,10 +11,11 @@ export const signup = async (req, res, next) => {
             success: true,
             message: "Signup successful",
             data: {
-                userId: user.id,
+                _id: user._id,
                 fullName: user.fullName,
                 email: user.email,
                 isVerified: user.isVerified,
+                createdAt: user.createdAt,
             },
         })
     } catch (error) {
@@ -32,10 +33,11 @@ export const login = async (req, res, next) => {
             success: true,
             message: "Login successful",
             data: {
-                userId: user.id,
+                _id: user._id,
                 fullName: user.fullName,
                 email: user.email,
                 isVerified: user.isVerified,
+                createdAt: user.createdAt,
             },
         })
     } catch (error) {
@@ -52,10 +54,11 @@ export const checkAuth = async (req, res, next) => {
             success: true,
             message: "Authentication successful",
             data: {
-                userId: user.id,
+                _id: user._id,
                 fullName: user.fullName,
                 email: user.email,
                 isVerified: user.isVerified,
+                createdAt: user.createdAt,
             },
         })
     } catch (error) {
@@ -63,7 +66,7 @@ export const checkAuth = async (req, res, next) => {
     }
 }
 
-export const logout = (req, res) => {
+export const logout = (req, res, next) => {
     try {
         res.clearCookie("token", {
             httpOnly: true,

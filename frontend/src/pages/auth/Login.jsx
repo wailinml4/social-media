@@ -22,8 +22,8 @@ const Login = () => {
     try {
       await login(email, password);
       navigate('/');
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 

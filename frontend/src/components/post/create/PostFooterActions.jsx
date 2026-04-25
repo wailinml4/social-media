@@ -6,7 +6,8 @@ const PostFooterActions = ({
   onEmojiClick, 
   onLocationClick, 
   onPostClick, 
-  hasPostContent 
+  hasPostContent,
+  isPosting = false
 }) => {
   return (
     <div className="relative border-t border-white/5 bg-bg-dark px-4 py-3 sm:px-5">
@@ -41,14 +42,14 @@ const PostFooterActions = ({
         <button
           type="button"
           onClick={onPostClick}
-          disabled={!hasPostContent}
+          disabled={!hasPostContent || isPosting}
           className={`inline-flex min-w-[92px] items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
             hasPostContent
               ? 'bg-white text-black hover:bg-white/92'
               : 'bg-white/8 text-white/28'
-          }`}
+          } ${isPosting ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          Post
+          {isPosting ? 'Posting...' : 'Post'}
         </button>
       </div>
     </div>

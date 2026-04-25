@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 
-import { Camera, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { useModal } from '../../context/ModalContext';
-import { profileData } from '../../data/profile';
+import { useAuth } from '../../context/AuthContext';
+import { updateProfile } from '../../services/profileService';
+import { uploadImage } from '../../services/uploadService';
 import { useModalAnimation } from '../../animations/useModalAnimation';
+import ProfileImageUpload from './ProfileImageUpload';
+import ProfileForm from './ProfileForm';
 
 const EditProfileModal = () => {
   const { isEditProfileOpen, closeEditProfileModal } = useModal();
+  const { user: currentUser, setUser } = useAuth();
   const overlayRef = useRef(null);
   const modalRef = useRef(null);
-  const avatarInputRef = useRef(null);
-  const coverInputRef = useRef(null);
 
   const { isRendered } = useModalAnimation(isEditProfileOpen, {
     overlayRef,
@@ -21,20 +25,19 @@ const EditProfileModal = () => {
     },
   });
 
-  const [name, setName] = useState(profileData.user.name);
-  const [handle, setHandle] = useState(profileData.user.handle);
-  const [bio, setBio] = useState(profileData.user.bio || '');
-  const [location, setLocation] = useState(profileData.user.location || '');
-  const [website, setWebsite] = useState(profileData.user.website || '');
-  const [avatarPreview, setAvatarPreview] = useState(profileData.user.avatar);
-  const [coverPreview, setCoverPreview] = useState(profileData.user.cover || '');
+  const [fullName, setFullName] = useState(currentUser?.fullName || '');
+  const [bio, setBio] = useState(currentUser?.bio || '');
+  const [avatarPreview, setAvatarPreview] = useState(currentUser?.profilePicture || '');
+  const [coverPreview, setCoverPreview] = useState(currentUser?.coverPicture || '');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const hasChanges = 
-    name !== profileData.user.name ||
-    handle !== profileData.user.handle ||
-    bio !== (profileData.user.bio || '') ||
-    location !== (profileData.user.location || '') ||
-    website !== (profileData.user.website || '');
+  const hasChanges =
+    fullName !== (currentUser?.fullName || '') ||
+    bio !== (currentUser?.bio || '') ||
+    avatarFile !== null ||
+    coverFile !== null;
 
   useEffect(() => {
     if (!isEditProfileOpen) return undefined;
@@ -55,40 +58,59 @@ const EditProfileModal = () => {
   }, [isEditProfileOpen, closeEditProfileModal]);
 
   const resetForm = () => {
-    setName(profileData.user.name);
-    setHandle(profileData.user.handle);
-    setBio(profileData.user.bio || '');
-    setLocation(profileData.user.location || '');
-    setWebsite(profileData.user.website || '');
-    setAvatarPreview(profileData.user.avatar);
-    setCoverPreview(profileData.user.cover || '');
+    setFullName(currentUser?.fullName || '');
+    setBio(currentUser?.bio || '');
+    setAvatarPreview(currentUser?.profilePicture || '');
+    setCoverPreview(currentUser?.coverPicture || '');
+    setAvatarFile(null);
+    setCoverFile(null);
   };
 
-  const handleAvatarChange = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setAvatarPreview(URL.createObjectURL(file));
+  const handleAvatarChange = (files) => {
+    if (files.length > 0) {
+      setAvatarFile(files[0].file);
+      setAvatarPreview(files[0].preview);
     }
   };
 
-  const handleCoverChange = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setCoverPreview(URL.createObjectURL(file));
+  const handleCoverChange = (files) => {
+    if (files.length > 0) {
+      setCoverFile(files[0].file);
+      setCoverPreview(files[0].preview);
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Update profile payload:', {
-      name,
-      handle,
-      bio,
-      location,
-      website,
-    });
+  const handleSubmit = async () => {
+    try {
+      setIsSaving(true);
 
-    closeEditProfileModal();
-    resetForm();
+      let profilePicture = currentUser?.profilePicture;
+      let coverPicture = currentUser?.coverPicture;
+
+      if (avatarFile) {
+        profilePicture = await uploadImage(avatarFile);
+      }
+
+      if (coverFile) {
+        coverPicture = await uploadImage(coverFile);
+      }
+
+      const updatedUser = await updateProfile({
+        fullName,
+        bio,
+        profilePicture,
+        coverPicture,
+      });
+
+      setUser(updatedUser);
+      toast.success('Profile updated successfully');
+      closeEditProfileModal();
+      resetForm();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isRendered) return null;
@@ -123,125 +145,20 @@ const EditProfileModal = () => {
 
         {/* Content */}
         <div className="relative flex-1 overflow-y-auto no-scrollbar px-4 py-4 sm:px-5">
-          {/* Cover Image */}
-          <div className="relative mb-16 h-32 overflow-hidden rounded-xl bg-white/5 sm:h-40">
-            {coverPreview ? (
-              <img
-                src={coverPreview}
-                alt="Cover"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-white/20">
-                <span className="text-sm">Add cover photo</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => coverInputRef.current?.click()}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
-              aria-label="Change cover photo"
-            >
-              <Camera className="h-4 w-4" />
-            </button>
-            <input
-              ref={coverInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleCoverChange}
-              className="hidden"
-            />
-          </div>
+          <ProfileImageUpload
+            avatarSrc={avatarPreview}
+            coverSrc={coverPreview}
+            userName={currentUser?.fullName}
+            onAvatarChange={handleAvatarChange}
+            onCoverChange={handleCoverChange}
+          />
 
-          {/* Avatar */}
-          <div className="absolute left-4 top-24 sm:left-5 sm:top-28">
-            <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-[#050505] bg-white/5 sm:h-28 sm:w-28">
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-white/20">
-                  <span className="text-xs">Add photo</span>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => avatarInputRef.current?.click()}
-                className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
-                aria-label="Change avatar"
-              >
-                <Camera className="h-3.5 w-3.5" />
-              </button>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {/* Form Fields */}
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20 focus:bg-white/10 transition-all duration-200"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Handle</label>
-              <input
-                type="text"
-                value={handle}
-                onChange={(e) => setHandle(e.target.value)}
-                placeholder="@username"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20 focus:bg-white/10 transition-all duration-200"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Bio</label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell us about yourself"
-                rows={3}
-                className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20 focus:bg-white/10 transition-all duration-200"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Location</label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, Country"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20 focus:bg-white/10 transition-all duration-200"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Website</label>
-              <input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://yourwebsite.com"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20 focus:bg-white/10 transition-all duration-200"
-              />
-            </div>
-          </div>
+          <ProfileForm
+            fullName={fullName}
+            bio={bio}
+            onFullNameChange={(value) => setFullName(value)}
+            onBioChange={(value) => setBio(value)}
+          />
         </div>
 
         {/* Footer */}
@@ -258,14 +175,14 @@ const EditProfileModal = () => {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!hasChanges}
+              disabled={!hasChanges || isSaving}
               className={`inline-flex min-w-[92px] items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-                hasChanges
+                hasChanges && !isSaving
                   ? 'bg-white text-black hover:bg-white/92'
                   : 'bg-white/8 text-white/28'
               }`}
             >
-              Save
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

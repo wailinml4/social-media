@@ -27,8 +27,8 @@ const ResetPassword = () => {
     try {
       await resetPassword(token, password);
       navigate('/login');
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 

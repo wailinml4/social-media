@@ -13,9 +13,10 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 
-import CreatePostModal from './components/post/CreatePostModal';
-import PostModal from './components/post/PostModal';
+import CreatePostModal from './components/post/create/CreatePostModal';
+import PostModal from './components/post/modal/PostModal';
 import EditProfileModal from './components/profile/EditProfileModal';
+import FollowersModal from './components/profile/FollowersModal';
 import Sidebar from './components/layout/Sidebar';
 
 import { ModalProvider } from './context/ModalContext';
@@ -82,7 +83,7 @@ const App = () => {
               <Route path="/notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/bookmarks"         element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
               <Route path="/profile"           element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/:userId"   element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             </Routes>
           </main>
         </div>
@@ -91,11 +92,13 @@ const App = () => {
         <PostModal />
         <CreatePostModal />
         <EditProfileModal />
+        <FollowersModal />
         <Toaster position="top-center" toastOptions={{
           style: {
             background: '#1a1a1a',
             color: '#fff',
             border: '1px solid rgba(255,255,255,0.1)',
+            zIndex: 9999,
           },
           success: {
             iconTheme: {

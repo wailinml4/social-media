@@ -1,22 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import CreatePost from '../components/post/CreatePost';
-import PostCard from '../components/post/PostCard';
-import PostSkeleton from '../components/post/PostSkeleton';
+import CreatePost from '../components/post/create/CreatePost';
+import PostCard from '../components/post/card/PostCard';
+import PostSkeleton from '../components/post/card/PostSkeleton';
 import StoriesBar from '../components/stories/StoriesBar';
 import Tabs from '../components/ui/Tabs';
 import TrendingSidebar from '../components/layout/TrendingSidebar';
 
-import { getAllPosts } from '../services/postsService';
+import { usePosts } from '../context/PostContext';
 import { useStaggeredFadeIn } from '../animations/useStaggeredFadeIn';
+import { useAuth } from '../context/AuthContext';
 
 const FEED_MAX_WIDTH = 600;
 
 const Home = () => {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { posts, isLoadingPosts, error, fetchAllPosts, fetchFollowingPosts, followingPosts, isLoadingFollowingPosts, fetchFriendsPosts, friendsPosts, isLoadingFriendsPosts } = usePosts();
   const [activeTab, setActiveTab] = useState('for_you');
   const feedRef = useRef(null);
   const loaderRef = useRef(null);
@@ -35,22 +34,25 @@ const Home = () => {
   useEffect(() => {
     const fetchInitialPosts = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const data = await getAllPosts({ offset: 0, limit: 3, filter: activeTab });
-        setPosts(data);
-      } catch (err) {
-        setError(err.message || 'Failed to load posts');
-        toast.error('Failed to load posts. Please try again.');
-      } finally {
-        setLoading(false);
+        if (activeTab === 'following') {
+          await fetchFollowingPosts({ offset: 0, limit: 3 });
+        } else if (activeTab === 'friends') {
+          await fetchFriendsPosts({ offset: 0, limit: 3 });
+        } else {
+          await fetchAllPosts({ offset: 0, limit: 3, filter: activeTab });
+        }
+      } catch (error) {
+        toast.error(error.message || 'Failed to load posts. Please try again.');
       }
     };
     fetchInitialPosts();
-  }, [activeTab]);
+  }, [activeTab, fetchAllPosts, fetchFollowingPosts, fetchFriendsPosts]);
 
   // GSAP Animation for newly loaded posts
-  useStaggeredFadeIn(!loading && posts.length > 0, '.post-card-animate-in', {
+  const currentPosts = activeTab === 'following' ? followingPosts : activeTab === 'friends' ? friendsPosts : posts;
+  const currentIsLoading = activeTab === 'following' ? isLoadingFollowingPosts : activeTab === 'friends' ? isLoadingFriendsPosts : isLoadingPosts;
+
+  useStaggeredFadeIn(!currentIsLoading && currentPosts.length > 0, '.post-card-animate-in', {
     y: 30,
     opacity: 0,
     duration: 0.5,
@@ -63,7 +65,7 @@ const Home = () => {
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       const target = entries[0];
-      if (target.isIntersecting && !loading && posts.length > 0) {
+      if (target.isIntersecting && !currentIsLoading && currentPosts.length > 0) {
         loadMorePosts();
       }
     }, { threshold: 0.5 });
@@ -77,17 +79,19 @@ const Home = () => {
         observer.unobserve(loaderRef.current);
       }
     };
-  }, [loading, posts]);
+  }, [currentIsLoading, currentPosts, activeTab, fetchAllPosts, fetchFollowingPosts, fetchFriendsPosts]);
 
   const loadMorePosts = async () => {
     try {
-      setLoading(true);
-      const nextPosts = await getAllPosts({ offset: posts.length, limit: 2, filter: activeTab });
-      setPosts(prev => [...prev, ...nextPosts]);
-    } catch (err) {
-      toast.error('Failed to load more posts. Please try again.');
-    } finally {
-      setLoading(false);
+      if (activeTab === 'following') {
+        await fetchFollowingPosts({ offset: followingPosts.length, limit: 2 });
+      } else if (activeTab === 'friends') {
+        await fetchFriendsPosts({ offset: friendsPosts.length, limit: 2 });
+      } else {
+        await fetchAllPosts({ offset: posts.length, limit: 2, filter: activeTab });
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to load more posts. Please try again.');
     }
   };
 
@@ -111,7 +115,7 @@ const Home = () => {
               />
             </div>
 
-            <CreatePost onPost={(text) => console.log('New post:', text)} />
+            <CreatePost />
 
             {/* Feed List */}
             <div ref={feedRef} className="flex-1">
@@ -131,13 +135,13 @@ const Home = () => {
                 </div>
               ) : (
                 <>
-                  {posts.map((post) => (
+                  {currentPosts.map((post) => (
                     <div key={post.id} className="post-card-animate-in">
                       <PostCard post={post} />
                     </div>
                   ))}
 
-                  {loading && (
+                  {currentIsLoading && (
                     <div className="flex flex-col">
                       <PostSkeleton />
                       <PostSkeleton />
@@ -147,7 +151,7 @@ const Home = () => {
                   {/* Invisible target for intersection observer */}
                   <div ref={loaderRef} className="h-20 w-full" />
 
-                  {!loading && posts.length > 0 && (
+                  {!currentIsLoading && currentPosts.length > 0 && (
                     <div className="border-b border-white/10 p-8 text-center text-sm text-white/40">
                       You&apos;re all caught up!
                     </div>

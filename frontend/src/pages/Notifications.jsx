@@ -62,8 +62,8 @@ const Notifications = () => {
         setError(null);
         const data = await getAllNotifications();
         setNotifications(data);
-      } catch (err) {
-        setError(err.message || 'Failed to load notifications');
+      } catch (error) {
+        setError(error.message || 'Failed to load notifications');
         toast.error('Failed to load notifications. Please try again.');
       } finally {
         setLoading(false);
