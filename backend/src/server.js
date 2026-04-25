@@ -14,6 +14,7 @@ import userRoutes from "./routes/userRoutes.js"
 import followRoutes from "./routes/followRoutes.js"
 import likeRoutes from "./routes/likeRoutes.js"
 import bookmarkRoutes from "./routes/bookmarkRoutes.js"
+import commentRoutes from "./routes/commentRoutes.js"
 
 dotenv.config()
 
@@ -42,6 +43,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/follow", followRoutes)
 app.use("/api", likeRoutes)
 app.use("/api", bookmarkRoutes)
+app.use("/api", commentRoutes)
 
 app.get("/", (req, res) => {
     res.send("Hello World!")

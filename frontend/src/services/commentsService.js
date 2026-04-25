@@ -1,28 +1,35 @@
 import axiosInstance from '../config/api';
 
-import { mockComments } from '../data/comments';
-
-export const getCommentsByPostId = async (postId) => {
-  const response = await axiosInstance.get(`/comments/post/${postId}`);
+export const createComment = async (postId, content, parentId = null) => {
+  const response = await axiosInstance.post(`/posts/${postId}/comments`, {
+    content,
+    parentId,
+  });
   return response.data.data;
 };
 
-export const getCommentById = async (id) => {
-  const response = await axiosInstance.get(`/comments/${id}`);
+export const getPostComments = async (postId, page = 1, limit = 20) => {
+  const response = await axiosInstance.get(`/posts/${postId}/comments`, {
+    params: { page, limit },
+  });
   return response.data.data;
 };
 
-export const createComment = async (data) => {
-  const response = await axiosInstance.post('/comments', data);
+export const getCommentReplies = async (commentId, page = 1, limit = 10) => {
+  const response = await axiosInstance.get(`/comments/${commentId}/replies`, {
+    params: { page, limit },
+  });
   return response.data.data;
 };
 
-export const updateComment = async (id, data) => {
-  const response = await axiosInstance.put(`/comments/${id}`, data);
+export const updateComment = async (commentId, content) => {
+  const response = await axiosInstance.put(`/comments/${commentId}`, {
+    content,
+  });
   return response.data.data;
 };
 
-export const deleteComment = async (id) => {
-  const response = await axiosInstance.delete(`/comments/${id}`);
-  return response.data.data;
+export const deleteComment = async (commentId) => {
+  const response = await axiosInstance.delete(`/comments/${commentId}`);
+  return response.data;
 };

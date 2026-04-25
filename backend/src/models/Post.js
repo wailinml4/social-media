@@ -8,8 +8,7 @@ const postSchema = new mongoose.Schema(
         
         likeCount: { type: Number, default: 0 },
         bookmarkCount: { type: Number, default: 0 },
-
-        // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: [] }], // TODO: check if this is correct
+        commentCount: { type: Number, default: 0 },
     },
     { timestamps: true },
 )

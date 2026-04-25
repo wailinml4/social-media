@@ -3,7 +3,7 @@ import { Smile, Send } from 'lucide-react';
 import Button from '../../ui/Button';
 import CommentItem from './CommentItem';
 
-const PostComments = ({ comments, isLoading, onAddComment }) => {
+const PostComments = ({ comments, isLoading, onAddComment, onReply, postId, currentUserId, onEdit, onDelete }) => {
   const [commentText, setCommentText] = useState('');
 
   const handleSubmit = (e) => {
@@ -18,13 +18,21 @@ const PostComments = ({ comments, isLoading, onAddComment }) => {
       <h4 className="font-bold text-white text-sm mb-4">Comments</h4>
       
       {isLoading ? (
-        <div className="text-center text-text-dim py-4">Loading comments...</div>
+        <div className="text-center text-white py-4">Loading comments...</div>
       ) : comments && comments.length > 0 ? (
         comments.map(comment => (
-          <CommentItem key={comment.id} comment={comment} />
+          <CommentItem 
+            key={comment.id} 
+            comment={comment} 
+            onReply={onReply}
+            postId={postId}
+            currentUserId={currentUserId}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         ))
       ) : (
-        <div className="text-center text-text-dim py-4">No comments yet</div>
+        <div className="text-center text-white py-4">No comments yet</div>
       )}
 
       <div className="border-t border-white/10 pt-4">

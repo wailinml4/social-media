@@ -12,7 +12,7 @@ import PostComments from '../comments/PostComments';
 import { useModal } from '../../../context/ModalContext';
 import { useAuth } from '../../../context/AuthContext';
 import { usePosts } from '../../../context/PostContext';
-import { getCommentsByPostId } from '../../../services/commentsService';
+import { getPostComments, createComment, updateComment, deleteComment, getCommentReplies } from '../../../services/commentsService';
 import { useSimpleModalAnimation } from '../../../animations/useModalAnimation';
 import { likePost, unlikePost, checkLikeStatus } from '../../../services/likeService';
 import { bookmarkPost, unbookmarkPost, checkBookmarkStatus } from '../../../services/bookmarkService';
@@ -53,8 +53,28 @@ const PostModal = () => {
       if (post) {
         try {
           setIsLoadingComments(true);
-          const comments = await getCommentsByPostId(post.id);
-          setPostComments(comments);
+          const result = await getPostComments(post._id);
+          
+          // Load replies for each comment
+          const commentsWithReplies = await Promise.all(
+            result.comments.map(async (comment) => {
+              try {
+                const repliesResult = await getCommentReplies(comment._id || comment.id);
+                return {
+                  ...comment,
+                  replies: repliesResult.replies || []
+                };
+              } catch (error) {
+                // If loading replies fails, return comment with empty replies
+                return {
+                  ...comment,
+                  replies: []
+                };
+              }
+            })
+          );
+          
+          setPostComments(commentsWithReplies);
           setEditContent(post.content || '');
           setLikesCount(post.likeCount || 0);
 
@@ -184,9 +204,105 @@ const PostModal = () => {
     }
   };
 
-  const handleAddComment = (text) => {
-    // Add comment logic here
-    console.log('Add comment:', text);
+  const handleAddComment = async (text) => {
+    if (!post || !text.trim()) return;
+
+    try {
+      const newComment = await createComment(post._id, text);
+      setPostComments(prev => [newComment, ...prev]);
+      // Update post comment count in state
+      if (post) {
+        post.commentCount = (post.commentCount || 0) + 1;
+      }
+      toast.success('Comment added successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to add comment');
+    }
+  };
+
+  const handleReply = async (parentId, text) => {
+    if (!post || !text.trim()) return;
+
+    try {
+      const newReply = await createComment(post._id, text, parentId);
+      // Add reply to the parent comment's replies array
+      setPostComments(prev => prev.map(comment => {
+        if (comment._id === parentId || comment.id === parentId) {
+          return {
+            ...comment,
+            replies: [...(comment.replies || []), newReply]
+          };
+        }
+        return comment;
+      }));
+      // Update post comment count in state
+      if (post) {
+        post.commentCount = (post.commentCount || 0) + 1;
+      }
+      toast.success('Reply added successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to add reply');
+    }
+  };
+
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      const updatedComment = await updateComment(commentId, newText);
+      // Update comment in state
+      setPostComments(prev => prev.map(comment => {
+        if (comment._id === commentId || comment.id === commentId) {
+          return { ...comment, text: newText };
+        }
+        // Also check in replies
+        if (comment.replies) {
+          return {
+            ...comment,
+            replies: comment.replies.map(reply => 
+              (reply._id === commentId || reply.id === commentId) 
+                ? { ...reply, text: newText }
+                : reply
+            )
+          };
+        }
+        return comment;
+      }));
+      toast.success('Comment updated successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update comment');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      
+      // Remove comment from state
+      setPostComments(prev => prev.map(comment => {
+        // If this is the comment being deleted, remove it
+        if (comment._id === commentId || comment.id === commentId) {
+          return null;
+        }
+        // If this is a parent comment, remove the deleted reply from its replies
+        if (comment.replies) {
+          return {
+            ...comment,
+            replies: comment.replies.filter(reply => 
+              reply._id !== commentId && reply.id !== commentId
+            )
+          };
+        }
+        return comment;
+      }).filter(comment => comment !== null));
+      
+      // Update post comment count in state
+      if (post) {
+        post.commentCount = Math.max(0, (post.commentCount || 0) - 1);
+      }
+      
+      toast.success('Comment deleted successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete comment');
+    }
   };
 
   const handleFollowAuthor = async () => {
@@ -265,7 +381,7 @@ const PostModal = () => {
               postId={post?._id}
               isOwnPost={isOwnPost}
               likesCount={likesCount}
-              commentsCount={post?.comments}
+              commentsCount={post?.commentCount || postComments.length}
               liked={liked}
               saved={saved}
               isLiking={isLiking}
@@ -281,6 +397,11 @@ const PostModal = () => {
               comments={postComments}
               isLoading={isLoadingComments}
               onAddComment={handleAddComment}
+              onReply={handleReply}
+              postId={post?._id}
+              currentUserId={currentUser?._id}
+              onEdit={handleEditComment}
+              onDelete={handleDeleteComment}
             />
           </div>
         </div>
