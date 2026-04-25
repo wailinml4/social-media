@@ -15,6 +15,7 @@ import followRoutes from "./routes/followRoutes.js"
 import likeRoutes from "./routes/likeRoutes.js"
 import bookmarkRoutes from "./routes/bookmarkRoutes.js"
 import commentRoutes from "./routes/commentRoutes.js"
+import notificationRoutes from "./routes/notificationRoutes.js"
 
 dotenv.config()
 
@@ -44,6 +45,7 @@ app.use("/api/follow", followRoutes)
 app.use("/api", likeRoutes)
 app.use("/api", bookmarkRoutes)
 app.use("/api", commentRoutes)
+app.use("/api/notifications", notificationRoutes)
 
 app.get("/", (req, res) => {
     res.send("Hello World!")

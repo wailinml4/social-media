@@ -1,5 +1,6 @@
 import Like from "../models/Like.js"
 import Post from "../models/Post.js"
+import { createNotificationService } from "./notificationService.js"
 
 export const likePostService = async (postId, userId) => {
     const post = await Post.findById(postId)
@@ -15,6 +16,16 @@ export const likePostService = async (postId, userId) => {
     await Like.create({ user: userId, post: postId })
     post.likeCount += 1
     await post.save()
+
+    // Create notification for post author (if not liking own post)
+    if (post.author.toString() !== userId) {
+        try {
+            await createNotificationService(post.author, userId, 'like', postId)
+        } catch (error) {
+            // Don't throw error if notification creation fails
+            console.error('Failed to create like notification:', error)
+        }
+    }
 
     return post
 }

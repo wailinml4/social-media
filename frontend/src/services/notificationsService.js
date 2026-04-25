@@ -1,19 +1,14 @@
 import axiosInstance from '../config/api';
 
-import { mockNotifications } from '../data/notifications';
-
-export const getAllNotifications = async () => {
-  const response = await axiosInstance.get('/notifications');
+export const getAllNotifications = async (offset = 0, limit = 20) => {
+  const response = await axiosInstance.get('/notifications', {
+    params: { offset, limit },
+  });
   return response.data.data;
 };
 
-export const getNotificationById = async (id) => {
-  const response = await axiosInstance.get(`/notifications/${id}`);
-  return response.data.data;
-};
-
-export const markNotificationAsRead = async (id) => {
-  const response = await axiosInstance.put(`/notifications/${id}/read`);
+export const markNotificationAsRead = async (notificationId) => {
+  const response = await axiosInstance.put(`/notifications/${notificationId}/read`);
   return response.data.data;
 };
 
@@ -22,7 +17,7 @@ export const markAllNotificationsAsRead = async () => {
   return response.data.data;
 };
 
-export const deleteNotification = async (id) => {
-  const response = await axiosInstance.delete(`/notifications/${id}`);
+export const deleteNotification = async (notificationId) => {
+  const response = await axiosInstance.delete(`/notifications/${notificationId}`);
   return response.data.data;
 };

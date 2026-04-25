@@ -6,6 +6,7 @@ import { Bell, Bookmark, Home, MessageCircle, MoreHorizontal, Plus, Search, User
 
 import { useModal } from '../../context/ModalContext';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { useSidebarAnimation } from '../../animations/useSidebarAnimation';
 
 const NAV_ITEMS = [
@@ -18,7 +19,7 @@ const NAV_ITEMS = [
 ]
 
 // ── Individual nav item ───────────────────────────────────────────────────────
-const SidebarItem = ({ to, icon: Icon, label, active, onClick, fillWhenActive = true }) => {
+const SidebarItem = ({ to, icon: Icon, label, active, onClick, fillWhenActive = true, badge = 0 }) => {
   const itemClassName = `sidebar-item flex items-center gap-4 px-[18px] py-3 rounded-2xl transition-colors duration-200 group w-full ${
     active
       ? 'text-white'
@@ -35,6 +36,11 @@ const SidebarItem = ({ to, icon: Icon, label, active, onClick, fillWhenActive = 
         />
         {active && (
           <span className="absolute -right-1 -top-1 w-1.5 h-1.5 rounded-full bg-primary" />
+        )}
+        {badge > 0 && (
+          <span className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-primary text-white text-[10px] font-bold rounded-full">
+            {badge > 99 ? '99+' : badge}
+          </span>
         )}
       </div>
 
@@ -67,6 +73,7 @@ const SidebarItem = ({ to, icon: Icon, label, active, onClick, fillWhenActive = 
 // ── Main sidebar ──────────────────────────────────────────────────────────────
 const Sidebar = () => {
   const { user, logout, isLoggingOut } = useAuth()
+  const { unreadCount } = useNotifications()
   const navigate = useNavigate()
   const location  = useLocation()
   const currentPath = location.pathname
@@ -121,6 +128,7 @@ const Sidebar = () => {
               icon={icon}
               label={label}
               active={currentPath === to}
+              badge={to === '/notifications' ? unreadCount : 0}
             />
           ))}
           <SidebarItem

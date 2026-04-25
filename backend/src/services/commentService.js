@@ -1,5 +1,6 @@
 import Comment from "../models/Comment.js"
 import Post from "../models/Post.js"
+import { createNotificationService } from "./notificationService.js"
 
 const formatTime = (date) => {
     const now = new Date()
@@ -40,6 +41,17 @@ export const createCommentService = async (postId, userId, content, parentId = n
     // Increment post comment count
     post.commentCount = (post.commentCount || 0) + 1
     await post.save()
+
+    // Create notification for post author (if not commenting on own post)
+    if (post.author.toString() !== userId) {
+        try {
+            const notificationType = parentId ? 'reply' : 'comment'
+            await createNotificationService(post.author, userId, notificationType, postId, comment._id)
+        } catch (error) {
+            // Don't throw error if notification creation fails
+            console.error('Failed to create comment notification:', error)
+        }
+    }
 
     // Populate user data
     await comment.populate("user", "fullName email profilePicture")

@@ -1,48 +1,116 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import { AtSign, Heart, MessageCircle, User } from 'lucide-react';
+import { AtSign, Heart, MessageCircle, User, MoreHorizontal, Trash2 } from 'lucide-react';
 
 import NotificationSkeleton from '../components/notifications/NotificationSkeleton';
 import Tabs from '../components/ui/Tabs';
 import TrendingSidebar from '../components/layout/TrendingSidebar';
 
 import { profileData } from '../data/profile';
-import { getAllNotifications } from '../services/notificationsService';
+import { useNotifications } from '../context/NotificationContext';
 import { useStaggeredFadeIn } from '../animations/useStaggeredFadeIn';
 
-const NotificationCard = ({ notification }) => {
+const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
+  const [showMenu, setShowMenu] = useState(false);
+
   const getIcon = () => {
     switch (notification.type) {
       case 'like': return <Heart className="w-7 h-7 text-pink-500 fill-pink-500" />;
       case 'follow': return <User className="w-7 h-7 text-blue-500 fill-blue-500" />;
+      case 'comment': return <MessageCircle className="w-7 h-7 text-green-500 fill-green-500" />;
       case 'reply': return <MessageCircle className="w-7 h-7 text-green-500 fill-green-500" />;
       case 'mention': return <AtSign className="w-7 h-7 text-purple-500" />;
       default: return null;
     }
   };
 
+  const getText = () => {
+    switch (notification.type) {
+      case 'like': return 'liked your post';
+      case 'follow': return 'followed you';
+      case 'comment': return 'commented on your post';
+      case 'reply': return 'replied to your comment';
+      case 'mention': return 'mentioned you in a comment';
+      default: return '';
+    }
+  };
+
+  const handleClick = async () => {
+    if (!notification.isRead) {
+      try {
+        await onMarkAsRead(notification._id || notification.id);
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
+    }
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    try {
+      await onDelete(notification._id || notification.id);
+      setShowMenu(false);
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
   return (
-    <article className="notification-card-animate-in px-4 py-4 border-b border-white/10 hover:bg-white/[0.02] transition-colors duration-300 flex gap-4 w-full cursor-pointer">
+    <article 
+      onClick={handleClick}
+      className={`notification-card-animate-in px-4 py-4 border-b border-white/10 hover:bg-white/[0.02] transition-colors duration-300 flex gap-4 w-full cursor-pointer ${!notification.isRead ? 'bg-white/[0.03]' : ''}`}
+    >
       <div className="flex-shrink-0 flex justify-end min-w-[40px] pt-1">
-        {getIcon()}
+        <div className="relative">
+          {getIcon()}
+          {!notification.isRead && (
+            <span className="absolute -right-1 -top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-[#08080a]" />
+          )}
+        </div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex gap-2 mb-2">
-          {notification.users.map((user, idx) => (
-            <img key={idx} src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full border border-white/10" />
-          ))}
+          <img src={notification.sender.avatar} alt={notification.sender.name} className="w-8 h-8 rounded-full border border-white/10" />
         </div>
         <div className="text-[15px] mb-2">
           <span className="font-bold text-white mr-1 hover:underline">
-            {notification.users.length > 1 ? `${notification.users[0].name} and ${notification.users.length - 1} others` : notification.users[0].name}
+            {notification.sender.name}
           </span>
-          <span className="text-gray-300">{notification.text}</span>
+          <span className="text-gray-300">{getText()}</span>
         </div>
-        {notification.postPreview && (
+        {notification.post && notification.post.content && (
           <p className="text-gray-500 text-[15px] leading-relaxed">
-            {notification.postPreview}
+            {notification.post.content}
           </p>
+        )}
+        {notification.comment && notification.comment.content && (
+          <p className="text-gray-500 text-[15px] leading-relaxed">
+            {notification.comment.content}
+          </p>
+        )}
+        <p className="text-gray-600 text-[12px] mt-1">{notification.time}</p>
+      </div>
+      <div className="relative">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu(!showMenu);
+          }}
+          className="p-1 text-text-dim hover:text-white transition-colors"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+        {showMenu && (
+          <div className="absolute right-0 top-full mt-1 bg-surface border border-white/10 rounded-lg shadow-lg overflow-hidden z-10">
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-white/10 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
         )}
       </div>
     </article>
@@ -51,30 +119,27 @@ const NotificationCard = ({ notification }) => {
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all');
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  const {
+    notifications,
+    isLoadingNotifications,
+    isMarkingAsRead,
+    isMarkingAllAsRead,
+    isDeleting,
+    error,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification: deleteNotificationItem,
+  } = useNotifications();
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getAllNotifications();
-        setNotifications(data);
-      } catch (error) {
-        setError(error.message || 'Failed to load notifications');
-        toast.error('Failed to load notifications. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   const notificationTabs = [
     { id: 'all', label: 'All' },
-    { id: 'verified', label: 'Verified' },
+    { id: 'unread', label: 'Unread' },
     { id: 'mentions', label: 'Mentions' },
   ];
 
@@ -82,14 +147,40 @@ const Notifications = () => {
     setActiveTab(tabId);
   };
 
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await markAsRead(notificationId);
+    } catch (error) {
+      toast.error('Failed to mark notification as read');
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      toast.error('Failed to mark all notifications as read');
+    }
+  };
+
+  const handleDelete = async (notificationId) => {
+    try {
+      await deleteNotificationItem(notificationId);
+      toast.success('Notification deleted');
+    } catch (error) {
+      toast.error('Failed to delete notification');
+    }
+  };
+
   const filteredNotifications = notifications.filter(notif => {
     if (activeTab === 'all') return true;
-    if (activeTab === 'verified') return false; // For mock, none are verified
+    if (activeTab === 'unread') return !notif.isRead;
     if (activeTab === 'mentions') return notif.type === 'mention' || notif.type === 'reply';
     return true;
   });
 
-  useStaggeredFadeIn(!loading && filteredNotifications.length > 0, '.notification-card-animate-in', {
+  useStaggeredFadeIn(!isLoadingNotifications && filteredNotifications.length > 0, '.notification-card-animate-in', {
     y: 20,
     opacity: 0,
     duration: 0.4,
@@ -111,6 +202,12 @@ const Notifications = () => {
             <div className="w-8 h-8 rounded-full bg-white/10 sm:hidden flex items-center justify-center overflow-hidden">
               <img src={profileData.user.avatar} alt="User" />
             </div>
+            <button
+              onClick={handleMarkAllAsRead}
+              className="text-sm text-primary hover:text-primary/80 transition-colors hidden sm:block"
+            >
+              Mark all as read
+            </button>
             <div className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center cursor-pointer transition-colors sm:hidden">
               <span className="text-xl font-bold">N</span>
             </div>
@@ -126,7 +223,7 @@ const Notifications = () => {
 
         {/* Notifications List */}
         <div className="flex-1">
-          {loading ? (
+          {isLoadingNotifications ? (
             <div className="flex flex-col">
               <NotificationSkeleton />
               <NotificationSkeleton />
@@ -148,7 +245,12 @@ const Notifications = () => {
             </div>
           ) : filteredNotifications.length > 0 ? (
             filteredNotifications.map(notification => (
-              <NotificationCard key={notification.id} notification={notification} />
+              <NotificationCard 
+                key={notification.id || notification._id} 
+                notification={notification} 
+                onMarkAsRead={handleMarkAsRead}
+                onDelete={handleDelete}
+              />
             ))
           ) : (
             <div className="p-8 text-center">

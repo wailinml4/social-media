@@ -1,5 +1,6 @@
 import User from "../models/User.js"
 import Follow from "../models/Follow.js"
+import { createNotificationService } from "./notificationService.js"
 
 export const followUserService = async (currentUserId, targetUserId) => {
     if (currentUserId === targetUserId) {
@@ -22,6 +23,14 @@ export const followUserService = async (currentUserId, targetUserId) => {
 
     await User.updateOne({ _id: currentUserId }, { $inc: { followingCount: 1 } })
     await User.updateOne({ _id: targetUserId }, { $inc: { followerCount: 1 } })
+
+    // Create notification for target user
+    try {
+        await createNotificationService(targetUserId, currentUserId, 'follow')
+    } catch (error) {
+        // Don't throw error if notification creation fails
+        console.error('Failed to create follow notification:', error)
+    }
 
     // If this creates a mutual follow, increment friendsCount for both
     if (targetFollowsCurrent) {
