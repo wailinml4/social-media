@@ -75,16 +75,16 @@ const VerifyEmail = () => {
       setTimeout(() => {
         navigate('/');
       }, 2000);
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 
   const handleResend = async () => {
     try {
       await resendVerificationEmail(user?.email);
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 

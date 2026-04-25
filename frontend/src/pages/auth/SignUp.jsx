@@ -24,8 +24,8 @@ const SignUp = () => {
     try {
       await signup(name, email, password, confirmPassword);
       navigate('/verify-email');
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 

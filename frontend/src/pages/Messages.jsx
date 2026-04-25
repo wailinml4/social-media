@@ -36,8 +36,8 @@ const Messages = () => {
         const [chatsData, userData] = await Promise.all([getAllChats(), getCurrentUser()]);
         setChats(chatsData);
         setCurrentUser(userData);
-      } catch (err) {
-        setChatsError(err.message || 'Failed to load chats');
+      } catch (error) {
+        setChatsError(error.message || 'Failed to load chats');
         toast.error('Failed to load conversations. Please try again.');
       } finally {
         setChatsLoading(false);
@@ -54,8 +54,8 @@ const Messages = () => {
           setMessagesError(null);
           const messagesData = await getChatMessages(activeChatId);
           setMessages(prev => ({ ...prev, [activeChatId]: messagesData }));
-        } catch (err) {
-          setMessagesError(err.message || 'Failed to load messages');
+        } catch (error) {
+          setMessagesError(error.message || 'Failed to load messages');
           toast.error('Failed to load messages. Please try again.');
         } finally {
           setMessagesLoading(false);

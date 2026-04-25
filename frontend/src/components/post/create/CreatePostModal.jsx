@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 
 import CreatePostHeader from './CreatePostHeader';
 import EmojiPicker from './EmojiPicker';
@@ -11,16 +12,21 @@ import PostTagsDisplay from './PostTagsDisplay';
 import PostActionButtons from './PostActionButtons';
 import PostFooterActions from './PostFooterActions';
 
-import { useModal } from '../../context/ModalContext';
-import { profileData } from '../../data/profile';
-import { useModalAnimation } from '../../animations/useModalAnimation';
+import { useModal } from '../../../context/ModalContext';
+import { useAuth } from '../../../context/AuthContext';
+import { usePosts } from '../../../context/PostContext';
+import { uploadImage } from '../../../services/uploadService';
+import { useModalAnimation } from '../../../animations/useModalAnimation';
 
 const CreatePostModal = () => {
   const { isCreatePostOpen, closeCreatePostModal } = useModal();
+  const { user } = useAuth();
+  const { createNewPost, isCreatingPost } = usePosts();
   const overlayRef = useRef(null);
   const modalRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaItemsRef = useRef([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { isRendered } = useModalAnimation(isCreatePostOpen, {
     overlayRef,
@@ -122,18 +128,33 @@ const CreatePostModal = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!hasPostContent) return;
 
-    console.log('Create post payload:', {
-      content,
-      taggedUsers,
-      location,
-      mediaItems: mediaItems.map((item) => item.file.name),
-    });
+    try {
+      setIsUploading(true);
+      
+      // Upload all media files
+      const uploadedUrls = [];
+      for (const item of mediaItems) {
+        const url = await uploadImage(item.file);
+        uploadedUrls.push(url);
+      }
 
-    closeCreatePostModal();
-    resetComposer();
+      // Create the post
+      await createNewPost({
+        content,
+        images: uploadedUrls,
+      });
+
+      toast.success('Post created successfully');
+      closeCreatePostModal();
+      resetComposer();
+    } catch (error) {
+      toast.error(error.message || 'Failed to create post');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   if (!isRendered) return null;
@@ -154,9 +175,9 @@ const CreatePostModal = () => {
 
         <div className="relative flex-1 overflow-y-auto no-scrollbar px-4 py-4 sm:px-5">
           <PostAuthorInfo
-            avatar={profileData.user.avatar}
-            name={profileData.user.name}
-            handle={profileData.user.handle}
+            avatar={user?.profilePicture || 'https://i.pravatar.cc/150'}
+            name={user?.fullName || 'User'}
+            handle={user?.username || user?.email?.split('@')[0] || 'user'}
           />
 
           <div className="min-w-0 flex-1">
@@ -218,6 +239,7 @@ const CreatePostModal = () => {
           onLocationClick={() => setShowLocationInput((current) => !current)}
           onPostClick={handleSubmit}
           hasPostContent={hasPostContent}
+          isPosting={isCreatingPost || isUploading}
         />
       </div>
     </div>

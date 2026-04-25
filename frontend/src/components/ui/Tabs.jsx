@@ -22,7 +22,7 @@ const Tabs = ({ tabs, activeTab, onTabChange, className = '' }) => {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 relative z-10 transition-all duration-300 group ${
+            className={`tab-anim flex-1 flex items-center justify-center gap-2 py-2.5 px-4 relative z-10 transition-all duration-300 group ${
               isActive ? 'text-white' : 'text-text-dim hover:text-gray-300'
             }`}
           >

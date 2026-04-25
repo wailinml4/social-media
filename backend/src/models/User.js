@@ -10,8 +10,9 @@ const userSchema = new mongoose.Schema(
         coverPicture: { type: String, default: "", trim: true },
         bio: { type: String, default: "", trim: true, maxLength: 280 },
 
-        followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
-        following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
+        followerCount: { type: Number, default: 0 },
+        followingCount: { type: Number, default: 0 },
+        postCount: { type: Number, default: 0 },
 
         verificationCode: { type: String },
         verificationCodeExpiresAt: { type: Date },

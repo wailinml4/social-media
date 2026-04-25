@@ -138,12 +138,18 @@ const Sidebar = () => {
                                hover:bg-white/[0.04] transition-colors duration-200 group">
               <div className="w-[44px] h-[44px] flex-shrink-0 rounded-full overflow-hidden
                               border border-white/10 group-hover:border-white/20 transition-colors">
-                <img src={user.avatar || '/default-avatar.png'} alt={user.fullName} className="w-full h-full object-cover" />
+                {user.profilePicture ? (
+                  <img src={user.profilePicture} alt={user.fullName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">{user.fullName?.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
               </div>
               <div className="sidebar-label flex items-center justify-between flex-1 min-w-0 opacity-0 translate-x-[-6px] overflow-hidden" style={{ width: 0 }}>
                 <div className="text-left min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{user.fullName}</p>
-                  <p className="text-xs text-white/35 truncate">@{user.username || user.email?.split('@')[0]}</p>
+                  <p className="text-xs text-white/35 truncate">{user.email?.split('@')[0]}</p>
                 </div>
                 <MoreHorizontal className="w-4 h-4 text-white/25 group-hover:text-white/60 transition-colors flex-shrink-0" />
               </div>

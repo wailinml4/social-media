@@ -21,8 +21,8 @@ const ForgotPassword = () => {
     try {
       await forgotPassword(email);
       setIsSent(true);
-    } catch (err) {
-      // Error is handled by context
+    } catch (error) {
+      // Error is handled by context and displayed via error state
     }
   };
 

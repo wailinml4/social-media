@@ -8,6 +8,12 @@ import connectDB from "./config/db.js"
 import cookieParser from "cookie-parser"
 import errorHandler from "./utils/errorHandler.js"
 import authRoutes from "./routes/authRoutes.js"
+import postRoutes from "./routes/postRoutes.js"
+import uploadRoutes from "./routes/uploadRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
+import followRoutes from "./routes/followRoutes.js"
+import likeRoutes from "./routes/likeRoutes.js"
+import bookmarkRoutes from "./routes/bookmarkRoutes.js"
 
 dotenv.config()
 
@@ -30,6 +36,12 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }))
 app.use(cookieParser())
 
 app.use("/api/auth", authRoutes)
+app.use("/api/posts", postRoutes)
+app.use("/api/upload", uploadRoutes)
+app.use("/api/users", userRoutes)
+app.use("/api/follow", followRoutes)
+app.use("/api", likeRoutes)
+app.use("/api", bookmarkRoutes)
 
 app.get("/", (req, res) => {
     res.send("Hello World!")

@@ -7,6 +7,9 @@ export const ModalProvider = ({ children }) => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
+  const [followersModalType, setFollowersModalType] = useState('followers');
+  const [followersModalUserId, setFollowersModalUserId] = useState(null);
 
   const openPostModal = (post) => {
     setSelectedPost(post);
@@ -34,6 +37,16 @@ export const ModalProvider = ({ children }) => {
     setIsEditProfileOpen(false);
   };
 
+  const openFollowersModal = (type, userId) => {
+    setFollowersModalType(type);
+    setFollowersModalUserId(userId);
+    setIsFollowersModalOpen(true);
+  };
+
+  const closeFollowersModal = () => {
+    setIsFollowersModalOpen(false);
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -41,12 +54,17 @@ export const ModalProvider = ({ children }) => {
         isPostModalOpen,
         isCreatePostOpen,
         isEditProfileOpen,
+        isFollowersModalOpen,
+        followersModalType,
+        followersModalUserId,
         openPostModal,
         closePostModal,
         openCreatePostModal,
         closeCreatePostModal,
         openEditProfileModal,
         closeEditProfileModal,
+        openFollowersModal,
+        closeFollowersModal,
       }}
     >
       {children}

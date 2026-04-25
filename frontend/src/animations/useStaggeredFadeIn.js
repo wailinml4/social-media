@@ -22,16 +22,18 @@ export const useStaggeredFadeIn = (shouldAnimate, selector, options = {}) => {
   useGSAP(() => {
     if (!shouldAnimate) return;
 
+    const elements = document.querySelectorAll(selector);
+    if (elements.length === 0) return;
+
     gsap.fromTo(selector,
       { y, opacity },
       { y: 0, opacity: 1, duration, stagger, ease, clearProps, delay }
     );
 
     // Remove class after animation to prevent re-animation
-    const animatedEls = document.querySelectorAll(selector);
     setTimeout(() => {
-      animatedEls.forEach(el => el.classList.remove(selector.replace('.', '')));
-    }, (duration + stagger * animatedEls.length) * 1000 + 100);
+      elements.forEach(el => el.classList.remove(selector.replace('.', '')));
+    }, (duration + stagger * elements.length) * 1000 + 100);
   }, [shouldAnimate, selector, y, opacity, duration, stagger, ease, clearProps, delay]);
 };
 
