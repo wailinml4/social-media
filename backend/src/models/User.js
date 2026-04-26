@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema(
         followingCount: { type: Number, default: 0 },
         postCount: { type: Number, default: 0 },
 
+        isOnline: { type: Boolean, default: false },
+        lastSeen: { type: Date },
+
         verificationCode: { type: String },
         verificationCodeExpiresAt: { type: Date },
         isVerified: { type: Boolean, default: false },

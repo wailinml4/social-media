@@ -4,17 +4,53 @@ import { Edit, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
 
 import ChatItem from './ChatItem';
 import ChatListSkeleton from './ChatListSkeleton';
+import { useChat } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 
 const ChatSidebar = ({
   isMobileListVisible,
   isChatListCollapsed,
   setIsChatListCollapsed,
-  mockChats,
   activeChatId,
   handleSelectChat,
-  loading,
-  error
 }) => {
+  const { user } = useAuth();
+  const { conversations, isLoadingConversations, error, selectConversation } = useChat();
+  const { onlineUsers } = useSocket();
+
+  const handleChatClick = (conversation) => {
+    const conversationId = conversation.id || conversation._id;
+    handleSelectChat(conversationId);
+    selectConversation(conversation);
+  };
+
+  const transformConversation = (conversation) => {
+    if (!user) return null;
+    const otherUser = conversation.participants.find(
+      (p) => p.id !== user._id && p._id !== user._id
+    ) || conversation.participants[0];
+
+    return {
+      id: conversation.id || conversation._id,
+      user: {
+        name: otherUser.name,
+        avatar: otherUser.avatar,
+        online: otherUser.isOnline || onlineUsers.has(otherUser.id || otherUser._id),
+      },
+      lastMessage: conversation.lastMessage?.content || 'No messages yet',
+      time: conversation.lastMessage?.createdAt || conversation.updatedAt,
+      unread: conversation.unreadCount?.[user._id] || 0,
+    };
+  };
+
+  const transformedChats = conversations
+    .map(transformConversation)
+    .filter(Boolean)
+    .filter((chat, index, self) => 
+      index === self.findIndex((c) => c.id === chat.id)
+    );
+
   return (
     <div 
       className={`flex-shrink-0 flex flex-col border-r border-white/10 bg-bg-dark/95 backdrop-blur-xl z-20 transition-all duration-300 ${
@@ -62,7 +98,7 @@ const ChatSidebar = ({
 
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-20 sm:pb-0">
-        {loading ? (
+        {isLoadingConversations ? (
           <div className="flex flex-col">
             <ChatListSkeleton />
             <ChatListSkeleton />
@@ -76,16 +112,24 @@ const ChatSidebar = ({
             <h3 className="text-lg font-bold text-white mb-2">Failed to load conversations</h3>
             <p className="text-gray-500 text-sm">{error}</p>
           </div>
-        ) : (
-          mockChats.map(chat => (
+        ) : transformedChats.length > 0 ? (
+          transformedChats.map(chat => (
             <ChatItem
               key={chat.id}
               chat={chat}
               isActive={activeChatId === chat.id}
-              onClick={() => handleSelectChat(chat.id)}
+              onClick={() => handleChatClick(conversations.find(c => (c.id || c._id) === chat.id))}
               isCollapsed={isChatListCollapsed}
             />
           ))
+        ) : (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">💬</span>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">No conversations yet</h3>
+            <p className="text-gray-500 text-sm">Start a conversation to see it here</p>
+          </div>
         )}
       </div>
     </div>

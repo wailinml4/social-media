@@ -1,24 +1,174 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { ChevronLeft, MoreVertical, Paperclip, Phone, Send, Smile, Video } from 'lucide-react';
+import { ChevronLeft, MoreVertical, Paperclip, Phone, Send, Smile, Video, X } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
 
 import Button from '../ui/Button';
 import ChatMessageSkeleton from './ChatMessageSkeleton';
 import MessageBubble from './MessageBubble';
+import { useChat } from '../../context/ChatContext';
+import { useAuth } from '../../context/AuthContext';
+import { uploadImage } from '../../services/uploadService';
 
 const ChatWindow = ({
-  activeChat,
   isMobileListVisible,
   setIsMobileListVisible,
-  currentMessages,
-  currentUser,
-  inputText,
-  setInputText,
-  handleSendMessage,
-  messagesEndRef,
-  loading,
-  error
 }) => {
+  const { user } = useAuth();
+  const {
+    currentConversation,
+    messages,
+    isLoadingMessages,
+    isSendingMessage,
+    typingUsers,
+    sendMessage,
+    emitTyping,
+    emitStopTyping,
+    markAsRead,
+  } = useChat();
+
+  const [inputText, setInputText] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const markedAsReadRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Mark conversation as read when opened
+  useEffect(() => {
+    if (currentConversation) {
+      const conversationId = currentConversation.id || currentConversation._id;
+      // Only mark as read if this is a different conversation than the last one marked
+      if (markedAsReadRef.current !== conversationId) {
+        markAsRead(conversationId).catch((error) => {
+          console.error('Failed to mark conversation as read:', error);
+        });
+        markedAsReadRef.current = conversationId;
+      }
+    }
+  }, [currentConversation, markAsRead]);
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!currentConversation || isSendingMessage) return;
+    if (!inputText.trim() && attachments.length === 0) return;
+
+    try {
+      // Upload attachments first
+      const uploadedAttachments = [];
+      for (const attachment of attachments) {
+        const url = await uploadImage(attachment.file);
+        uploadedAttachments.push({
+          type: attachment.type,
+          url,
+          name: attachment.file.name,
+          size: attachment.file.size,
+          mimeType: attachment.file.type,
+        });
+      }
+
+      await sendMessage(currentConversation.id || currentConversation._id, inputText.trim(), uploadedAttachments);
+      setInputText('');
+      setAttachments([]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
+
+    // Emit typing indicator
+    if (currentConversation) {
+      emitTyping(currentConversation.id || currentConversation._id);
+
+      // Clear previous timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Emit stop typing after 3 seconds of no activity
+      typingTimeoutRef.current = setTimeout(() => {
+        emitStopTyping(currentConversation.id || currentConversation._id);
+      }, 3000);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    const newAttachments = files.map((file) => {
+      const type = file.type.startsWith('image/') ? 'image' : 
+                   file.type.startsWith('video/') ? 'video' : 
+                   file.type.startsWith('audio/') ? 'audio' : 'file';
+      
+      return {
+        id: Date.now() + Math.random(),
+        file,
+        type,
+        preview: URL.createObjectURL(file),
+      };
+    });
+    setAttachments((prev) => [...prev, ...newAttachments]);
+  };
+
+  const handleRemoveAttachment = (id) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleEmojiClick = (emojiData) => {
+    setInputText((prev) => prev + emojiData.emoji);
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getTypingUsersText = () => {
+    if (!currentConversation) return '';
+    const typingUserIds = typingUsers[currentConversation.id || currentConversation._id] || [];
+    if (typingUserIds.length === 0) return '';
+    
+    // Get the names of typing users
+    const typingUsersNames = typingUserIds
+      .map((userId) => {
+        const typingUser = currentConversation.participants.find(
+          (p) => (p.id === userId || p._id === userId) && (p.id !== user._id && p._id !== user._id)
+        );
+        return typingUser ? (typingUser.name || typingUser.fullName) : null;
+      })
+      .filter(Boolean);
+
+    if (typingUsersNames.length === 0) return '';
+    if (typingUsersNames.length === 1) return `${typingUsersNames[0]} is typing...`;
+    if (typingUsersNames.length === 2) return `${typingUsersNames.join(' and ')} are typing...`;
+    return `${typingUsersNames.length} people are typing...`;
+  };
+
+  const activeChat = currentConversation && user
+    ? {
+        user: currentConversation.participants.find(
+          (p) => p.id !== user._id && p._id !== user._id
+        ) || currentConversation.participants[0],
+      }
+    : null;
+
   return (
     <div className={`flex-1 flex flex-col bg-bg-dark min-w-0 ${
       isMobileListVisible ? 'hidden sm:flex' : 'flex'
@@ -35,11 +185,20 @@ const ChatWindow = ({
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <img src={activeChat.user.avatar} alt="Avatar" className="w-10 h-10 rounded-full border border-white/10" />
+              <div className="relative">
+                <img src={activeChat.user.avatar} alt="Avatar" className="w-10 h-10 rounded-full border border-white/10" />
+                {activeChat.user.isOnline && (
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-bg-dark rounded-full" />
+                )}
+              </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-white text-[15px] truncate">{activeChat.user.name}</h3>
+                <h3 className="font-bold text-white text-[15px] truncate">{activeChat.user.name || activeChat.user.fullName}</h3>
                 <p className="text-xs text-text-dim truncate">
-                  {activeChat.user.online ? <span className="text-green-500">Online</span> : 'Last seen recently'}
+                  {activeChat.user.isOnline ? (
+                    <span className="text-green-500">Online</span>
+                  ) : (
+                    'Last seen recently'
+                  )}
                 </p>
               </div>
             </div>
@@ -62,23 +221,28 @@ const ChatWindow = ({
             className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 no-scrollbar"
             style={{ backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, transparent 100%)' }}
           >
-            {loading ? (
+            {isLoadingMessages ? (
               <div className="flex flex-col">
                 <ChatMessageSkeleton isMe={false} />
                 <ChatMessageSkeleton isMe={true} />
                 <ChatMessageSkeleton isMe={false} />
               </div>
-            ) : error ? (
-              <div className="h-full flex flex-col items-center justify-center text-text-dim">
-                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">⚠️</span>
-                </div>
-                <p className="text-sm">{error}</p>
-              </div>
-            ) : currentMessages.length > 0 ? (
-              currentMessages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} isMe={msg.senderId === currentUser.id} />
-              ))
+            ) : messages.length > 0 ? (
+              <>
+                {messages.map((msg, index) => (
+                  <MessageBubble 
+                    key={msg.id || msg._id} 
+                    message={msg} 
+                    isMe={msg.sender.id === user._id || msg.sender._id === user._id}
+                    isLastMessage={index === messages.length - 1}
+                  />
+                ))}
+                {getTypingUsersText() && (
+                  <div className="text-xs text-text-dim italic mb-2">
+                    {getTypingUsersText()}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-text-dim">
                 <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
@@ -92,17 +256,55 @@ const ChatWindow = ({
 
           {/* Input Area */}
           <div className="p-4 bg-bg-dark border-t border-white/10 flex-shrink-0">
+            {attachments.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {attachments.map((attachment) => (
+                  <div key={attachment.id} className="relative group">
+                    {attachment.type === 'image' ? (
+                      <img
+                        src={attachment.preview}
+                        alt={attachment.file.name}
+                        className="h-16 w-16 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg bg-white/10 flex items-center justify-center">
+                        <Paperclip className="w-6 h-6 text-text-dim" />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttachment(attachment.id)}
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <form 
               onSubmit={handleSendMessage}
               className="flex items-end gap-2 bg-white/5 border border-white/10 rounded-2xl p-2 focus-within:border-primary/50 transition-colors"
             >
-              <button type="button" className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*,*/*"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0"
+              >
                 <Paperclip className="w-5 h-5" />
               </button>
               
               <textarea 
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -114,14 +316,24 @@ const ChatWindow = ({
                 rows={1}
               />
               
-              <button type="button" className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0 relative"
+              >
                 <Smile className="w-5 h-5" />
               </button>
+              
+              {showEmojiPicker && (
+                <div ref={emojiPickerRef} className="absolute bottom-20 right-16 z-20">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
               
               <Button 
                 type="submit" 
                 size="sm"
-                disabled={!inputText.trim()}
+                disabled={(!inputText.trim() && attachments.length === 0) || isSendingMessage}
                 className="ml-1"
               >
                 <Send className="w-5 h-5 ml-0.5" />

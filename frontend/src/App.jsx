@@ -45,7 +45,7 @@ const App = () => {
   const isLandingPage = location.pathname === '/landing'
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].includes(location.pathname)
   const isFullWidthPage = isLandingPage || isAuthPage
-  const isMessagesPage = location.pathname === '/messages'
+  const isMessagesPage = location.pathname.startsWith('/messages')
 
   return (
     <ModalProvider>
@@ -80,6 +80,7 @@ const App = () => {
               <Route path="/verify-email"      element={<VerifyEmail />} />
               <Route path="/"                  element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/messages/:userId"  element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/bookmarks"         element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
               <Route path="/profile"           element={<ProtectedRoute><Profile /></ProtectedRoute>} />

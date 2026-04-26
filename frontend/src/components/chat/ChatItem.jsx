@@ -36,8 +36,8 @@ const ChatItem = ({ chat, isActive, onClick, isCollapsed }) => {
       {!isCollapsed && (
         <div className="flex-1 min-w-0 transition-opacity duration-300">
           <div className="flex justify-between items-baseline mb-1">
-            <h3 className="font-bold text-white truncate pr-2">{chat.user.name}</h3>
-            <span className="text-xs text-text-dim whitespace-nowrap">{chat.timestamp}</span>
+            <h3 className="font-bold text-white truncate pr-2">{chat.user.name || chat.user.fullName}</h3>
+            <span className="text-xs text-text-dim whitespace-nowrap">{chat.time || chat.timestamp}</span>
           </div>
           <div className="flex justify-between items-center">
             <p className={`text-sm truncate ${chat.unread ? 'text-white font-medium' : 'text-text-dim'}`}>
