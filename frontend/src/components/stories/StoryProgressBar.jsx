@@ -3,9 +3,9 @@ import React from 'react';
 const StoryProgressBar = ({ slides, currentIndex, currentProgress }) => {
   return (
     <div className="flex gap-1 mb-3">
-      {slides.map((_, i) => (
+      {slides.map((slide, i) => (
         <div
-          key={i}
+          key={slide.id || i}
           className="flex-1 h-[2.5px] rounded-full overflow-hidden"
           style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}
         >

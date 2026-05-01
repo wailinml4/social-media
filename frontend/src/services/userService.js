@@ -1,7 +1,5 @@
 import axiosInstance from '../config/api';
 
-import { profileData } from '../data/profile';
-
 export const getCurrentProfile = async () => {
   const response = await axiosInstance.get('/users/me/profile');
   return response.data.data;
@@ -17,17 +15,17 @@ export const updateProfile = async (userId, data) => {
   return response.data.data;
 };
 
-export const getUserPosts = async (userId, { offset = 0, limit = 10 } = {}) => {
-  const response = await axiosInstance.get(`/posts/user/${userId}?offset=${offset}&limit=${limit}`);
+export const getUserPosts = async (userId, { page = 1, limit = 10 } = {}) => {
+  const response = await axiosInstance.get(`/posts/user/${userId}?page=${page}&limit=${limit}`);
   return response.data.data;
 };
 
-export const getUserBookmarks = async (userId, { offset = 0, limit = 10 } = {}) => {
-  const response = await axiosInstance.get(`/posts/bookmarked/${userId}?offset=${offset}&limit=${limit}`);
+export const getUserBookmarks = async (userId, { page = 1, limit = 10 } = {}) => {
+  const response = await axiosInstance.get(`/posts/bookmarked/${userId}?page=${page}&limit=${limit}`);
   return response.data.data;
 };
 
-export const getSuggestedUsers = async ({ limit = 5 } = {}) => {
-  const response = await axiosInstance.get(`/users/suggested?limit=${limit}`);
+export const getSuggestedUsers = async ({ page = 1, limit = 5 } = {}) => {
+  const response = await axiosInstance.get(`/users/suggested?page=${page}&limit=${limit}`);
   return response.data.data;
 };

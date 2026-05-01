@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useModal } from '../../context/ModalContext';
 import { useModalAnimation } from '../../animations/useModalAnimation';
 import { useAuth } from '../../context/AuthContext';
@@ -10,6 +11,7 @@ import { getFollowers, getFollowees, getFriends, checkFollowStatus, followUser, 
 const FollowersModal = () => {
   const { isFollowersModalOpen, followersModalType, followersModalUserId, closeFollowersModal } = useModal();
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const overlayRef = useRef(null);
   const modalRef = useRef(null);
   const listRef = useRef(null);
@@ -24,36 +26,36 @@ const FollowersModal = () => {
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [followingStatus, setFollowingStatus] = useState({});
 
-  const fetchUsers = async (currentOffset = 0) => {
+  const fetchUsers = async (pageToFetch = 1) => {
     try {
       setLoading(true);
-      const offsetToUse = currentOffset === 0 ? 0 : offset;
-      
       let response;
       if (followersModalType === 'followers') {
-        response = await getFollowers(followersModalUserId, offsetToUse, 20);
+        response = await getFollowers(followersModalUserId, pageToFetch, 20);
       } else if (followersModalType === 'following') {
-        response = await getFollowees(followersModalUserId, offsetToUse, 20);
+        response = await getFollowees(followersModalUserId, pageToFetch, 20);
       } else if (followersModalType === 'friends') {
-        response = await getFriends(followersModalUserId, offsetToUse, 20);
+        response = await getFriends(followersModalUserId, pageToFetch, 20);
       } else {
         response = { data: [] };
       }
 
-      const newUsers = response.data || [];
-      
-      if (currentOffset === 0) {
+      const payload = response.data ?? response
+      const result = payload.data ?? payload
+      const newUsers = result.followers || result.followees || result.friends || [];
+
+      if (pageToFetch === 1) {
         setUsers(newUsers);
       } else {
         setUsers(prev => [...prev, ...newUsers]);
       }
-      
-      setOffset(offsetToUse + newUsers.length);
-      setHasMore(newUsers.length >= 20);
+
+      setPage(pageToFetch);
+      setHasMore(newUsers.length === 20);
 
       // Fetch follow status for users
       const statusMap = { ...followingStatus };
@@ -75,7 +77,7 @@ const FollowersModal = () => {
 
   const loadMore = () => {
     if (!loading && hasMore) {
-      fetchUsers(offset);
+      fetchUsers(page + 1);
     }
   };
 
@@ -97,7 +99,8 @@ const FollowersModal = () => {
 
   useEffect(() => {
     if (followersModalUserId && followersModalType) {
-      fetchUsers(0);
+      setPage(1);
+      fetchUsers(1);
     }
   }, [followersModalUserId, followersModalType]);
 
@@ -174,6 +177,10 @@ const FollowersModal = () => {
               currentUser={currentUser}
               followingStatus={followingStatus}
               onFollow={handleFollow}
+              onUserSelect={(userId) => {
+                closeFollowersModal();
+                navigate(`/profile/${userId}`);
+              }}
             />
           )}
         </div>

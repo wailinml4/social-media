@@ -4,7 +4,9 @@ import Post from "../models/Post.js"
 export const bookmarkPostService = async (postId, userId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const existingBookmark = await Bookmark.findOne({ user: userId, post: postId })
@@ -22,7 +24,9 @@ export const bookmarkPostService = async (postId, userId) => {
 export const unbookmarkPostService = async (postId, userId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const bookmark = await Bookmark.findOneAndDelete({ user: userId, post: postId })
@@ -34,19 +38,34 @@ export const unbookmarkPostService = async (postId, userId) => {
     return post
 }
 
-export const getUserBookmarkedPostsService = async (userId, offset = 0, limit = 10) => {
+export const getUserBookmarkedPostsService = async (userId, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit
     const bookmarks = await Bookmark.find({ user: userId })
         .populate('post')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
-    return bookmarks.map(bookmark => bookmark.post)
+
+    const total = await Bookmark.countDocuments({ user: userId })
+    const posts = bookmarks.map(bookmark => bookmark.post)
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }
 
 export const getPostBookmarkCountService = async (postId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
     return post.bookmarkCount
 }

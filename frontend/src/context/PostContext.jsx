@@ -9,7 +9,7 @@ import {
 	getBookmarkedPosts,
 	getFollowingPosts,
 	getFriendsPosts,
-} from "../services/postsService.js"
+} from "../services/postService.js"
 
 export const PostContext = createContext()
 
@@ -33,14 +33,14 @@ export const PostProvider = ({ children }) => {
 	
 	const [error, setError] = useState(null)
 
-	const fetchAllPosts = useCallback(async ({ offset = 0, limit = 10, filter = 'for_you' } = {}) => {
+	const fetchAllPosts = useCallback(async ({ page = 1, limit = 10, filter = 'for_you' } = {}) => {
 		try {
 			setIsLoadingPosts(true)
-			const response = await getAllPosts({ offset, limit, filter })
-			if (offset === 0) {
-				setPosts(response)
+			const response = await getAllPosts({ page, limit, filter })
+			if (page === 1) {
+				setPosts(response.posts)
 			} else {
-				setPosts(prev => [...prev, ...response])
+				setPosts(prev => [...prev, ...response.posts])
 			}
 			setError(null)
 		} catch (error) {
@@ -115,11 +115,11 @@ export const PostProvider = ({ children }) => {
 		}
 	}, [posts, userPosts, bookmarkedPosts, currentPost])
 
-	const fetchUserPosts = useCallback(async ({ userId, offset = 0, limit = 10 } = {}) => {
+	const fetchUserPosts = useCallback(async ({ userId, page = 1, limit = 10 } = {}) => {
 		try {
 			setIsLoadingUserPosts(true)
-			const response = await getUserPosts({ userId, offset, limit })
-			setUserPosts(response)
+			const response = await getUserPosts({ userId, page, limit })
+			setUserPosts(response.posts)
 			setError(null)
 		} catch (error) {
 			setError(error.message)
@@ -129,11 +129,11 @@ export const PostProvider = ({ children }) => {
 		}
 	}, [])
 
-	const fetchBookmarkedPosts = useCallback(async ({ userId, offset = 0, limit = 10 } = {}) => {
+	const fetchBookmarkedPosts = useCallback(async ({ userId, page = 1, limit = 10 } = {}) => {
 		try {
 			setIsLoadingBookmarkedPosts(true)
-			const response = await getBookmarkedPosts({ userId, offset, limit })
-			setBookmarkedPosts(response)
+			const response = await getBookmarkedPosts({ userId, page, limit })
+			setBookmarkedPosts(response.posts)
 			setError(null)
 		} catch (error) {
 			setError(error.message)
@@ -143,14 +143,14 @@ export const PostProvider = ({ children }) => {
 		}
 	}, [])
 
-	const fetchFollowingPosts = useCallback(async ({ offset = 0, limit = 10 } = {}) => {
+	const fetchFollowingPosts = useCallback(async ({ page = 1, limit = 10 } = {}) => {
 		try {
 			setIsLoadingFollowingPosts(true)
-			const response = await getFollowingPosts({ offset, limit })
-			if (offset === 0) {
-				setFollowingPosts(response)
+			const response = await getFollowingPosts({ page, limit })
+			if (page === 1) {
+				setFollowingPosts(response.posts)
 			} else {
-				setFollowingPosts(prev => [...prev, ...response])
+				setFollowingPosts(prev => [...prev, ...response.posts])
 			}
 			setError(null)
 		} catch (error) {
@@ -161,14 +161,14 @@ export const PostProvider = ({ children }) => {
 		}
 	}, [])
 
-	const fetchFriendsPosts = useCallback(async ({ offset = 0, limit = 10 } = {}) => {
+	const fetchFriendsPosts = useCallback(async ({ page = 1, limit = 10 } = {}) => {
 		try {
 			setIsLoadingFriendsPosts(true)
-			const response = await getFriendsPosts({ offset, limit })
-			if (offset === 0) {
-				setFriendsPosts(response)
+			const response = await getFriendsPosts({ page, limit })
+			if (page === 1) {
+				setFriendsPosts(response.posts)
 			} else {
-				setFriendsPosts(prev => [...prev, ...response])
+				setFriendsPosts(prev => [...prev, ...response.posts])
 			}
 			setError(null)
 		} catch (error) {

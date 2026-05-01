@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { getAllNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from "../services/notificationsService.js"
+import { getAllNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from "../services/notificationService.js"
 import { useAuth } from "./AuthContext"
 import { useSocket } from "./SocketContext"
 import toast from "react-hot-toast"
@@ -18,10 +18,10 @@ export const NotificationProvider = ({ children }) => {
   const { isAuthenticated } = useAuth()
   const { isConnected, onNotification, offNotification } = useSocket()
 
-  const fetchNotifications = useCallback(async ({ offset = 0, limit = 20 } = {}) => {
+  const fetchNotifications = useCallback(async ({ page = 1, limit = 20 } = {}) => {
     try {
       setIsLoadingNotifications(true)
-      const response = await getAllNotifications(offset, limit)
+      const response = await getAllNotifications(page, limit)
       setNotifications(response.notifications || [])
       setUnreadCount(response.pagination?.unreadCount || 0)
       setError(null)
@@ -99,7 +99,7 @@ export const NotificationProvider = ({ children }) => {
   // Initial fetch when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      fetchNotifications()
+      fetchNotifications({ page: 1, limit: 20 })
     }
   }, [isAuthenticated, fetchNotifications])
 

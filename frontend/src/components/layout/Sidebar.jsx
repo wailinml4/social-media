@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -14,7 +14,6 @@ const NAV_ITEMS = [
   { to: '/search',       icon: Search,        label: 'Explore'       },
   { to: '/notifications',icon: Bell,          label: 'Notifications' },
   { to: '/messages',     icon: MessageCircle, label: 'Messages'      },
-  { to: '/bookmarks',    icon: Bookmark,      label: 'Bookmarks'     },
   { to: '/profile',      icon: User,          label: 'Profile'       },
 ]
 
@@ -77,7 +76,8 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location  = useLocation()
   const currentPath = location.pathname
-  const { isCreatePostOpen, openCreatePostModal } = useModal()
+  const { isCreatePostOpen, openCreatePostModal, openCreateStoryModal } = useModal()
+  const [showCreateMenu, setShowCreateMenu] = useState(false)
 
   const asideRef     = useRef(null)
   const labelsRef    = useRef([])
@@ -98,7 +98,7 @@ const Sidebar = () => {
       ref={asideRef}
       onMouseEnter={expand}
       onMouseLeave={collapse}
-      className="fixed left-0 top-0 h-screen z-50 flex flex-col overflow-hidden
+      className="fixed left-0 top-0 h-screen z-50 flex flex-col overflow-visible
                  border-r border-white/10
                  bg-[#08080a]/90 backdrop-blur-2xl
                  py-6 px-2"
@@ -131,13 +131,39 @@ const Sidebar = () => {
               badge={to === '/notifications' ? unreadCount : 0}
             />
           ))}
-          <SidebarItem
-            icon={Plus}
-            label="Post"
-            active={isCreatePostOpen}
-            onClick={openCreatePostModal}
-            fillWhenActive={false}
-          />
+          <div className="relative">
+            <SidebarItem
+              icon={Plus}
+              label="Create"
+              active={showCreateMenu || isCreatePostOpen}
+              onClick={() => setShowCreateMenu((prev) => !prev)}
+              fillWhenActive={false}
+            />
+            {showCreateMenu && (
+              <div className="absolute left-full top-0 ml-2 w-44 rounded-3xl border border-white/10 bg-[#08080a] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateMenu(false)
+                    openCreatePostModal()
+                  }}
+                  className="w-full rounded-2xl bg-white/5 px-4 py-3 text-left text-sm text-white transition hover:bg-white/10"
+                >
+                  Create post
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateMenu(false)
+                    openCreateStoryModal()
+                  }}
+                  className="mt-2 w-full rounded-2xl bg-white/5 px-4 py-3 text-left text-sm text-white transition hover:bg-white/10"
+                >
+                  Create story
+                </button>
+              </div>
+            )}
+          </div>
         </nav>
         {/* User footer */}
         <div className="border-t border-white/10 pt-4 flex-shrink-0">

@@ -25,20 +25,26 @@ export const createNotificationService = async (recipientId, senderId, type, pos
     // Validate recipient exists
     const recipient = await User.findById(recipientId)
     if (!recipient) {
-        throw new Error("Recipient not found")
+        const error = new Error("Recipient not found")
+        error.statusCode = 404
+        throw error
     }
 
     // Validate sender exists
     const sender = await User.findById(senderId)
     if (!sender) {
-        throw new Error("Sender not found")
+        const error = new Error("Sender not found")
+        error.statusCode = 404
+        throw error
     }
 
     // If post is provided, validate it exists
     if (postId) {
         const post = await Post.findById(postId)
         if (!post) {
-            throw new Error("Post not found")
+            const error = new Error("Post not found")
+            error.statusCode = 404
+            throw error
         }
     }
 
@@ -46,7 +52,9 @@ export const createNotificationService = async (recipientId, senderId, type, pos
     if (commentId) {
         const comment = await Comment.findById(commentId)
         if (!comment) {
-            throw new Error("Comment not found")
+            const error = new Error("Comment not found")
+            error.statusCode = 404
+            throw error
         }
     }
 
@@ -81,13 +89,14 @@ export const createNotificationService = async (recipientId, senderId, type, pos
     return transformedNotification
 }
 
-export const getAllNotificationsService = async (recipientId, offset = 0, limit = 20) => {
+export const getAllNotificationsService = async (recipientId, page = 1, limit = 20) => {
+    const skip = (page - 1) * limit
     const notifications = await Notification.find({ recipient: recipientId })
         .populate("sender", "fullName email profilePicture")
         .populate("post", "content images")
         .populate("comment", "content")
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
 
     const total = await Notification.countDocuments({ recipient: recipientId })
@@ -120,9 +129,10 @@ export const getAllNotificationsService = async (recipientId, offset = 0, limit 
     return {
         notifications: transformedNotifications,
         pagination: {
-            offset,
+            page,
             limit,
             total,
+            pages: Math.ceil(total / limit),
             unreadCount,
         },
     }
@@ -131,12 +141,16 @@ export const getAllNotificationsService = async (recipientId, offset = 0, limit 
 export const markAsReadService = async (notificationId, userId) => {
     const notification = await Notification.findById(notificationId)
     if (!notification) {
-        throw new Error("Notification not found")
+        const error = new Error("Notification not found")
+        error.statusCode = 404
+        throw error
     }
 
     // Only the recipient can mark as read
     if (notification.recipient.toString() !== userId) {
-        throw new Error("You can only mark your own notifications as read")
+        const error = new Error("You can only mark your own notifications as read")
+        error.statusCode = 403
+        throw error
     }
 
     notification.isRead = true
@@ -177,12 +191,16 @@ export const markAllAsReadService = async (userId) => {
 export const deleteNotificationService = async (notificationId, userId) => {
     const notification = await Notification.findById(notificationId)
     if (!notification) {
-        throw new Error("Notification not found")
+        const error = new Error("Notification not found")
+        error.statusCode = 404
+        throw error
     }
 
     // Only the recipient can delete
     if (notification.recipient.toString() !== userId) {
-        throw new Error("You can only delete your own notifications")
+        const error = new Error("You can only delete your own notifications")
+        error.statusCode = 403
+        throw error
     }
 
     await Notification.findByIdAndDelete(notificationId)

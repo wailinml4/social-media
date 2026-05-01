@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
-import CreatePost from '../components/post/create/CreatePost';
 import PostCard from '../components/post/card/PostCard';
 import PostSkeleton from '../components/post/card/PostSkeleton';
 import StoriesBar from '../components/stories/StoriesBar';
@@ -17,6 +16,7 @@ const FEED_MAX_WIDTH = 600;
 const Home = () => {
   const { posts, isLoadingPosts, error, fetchAllPosts, fetchFollowingPosts, followingPosts, isLoadingFollowingPosts, fetchFriendsPosts, friendsPosts, isLoadingFriendsPosts } = usePosts();
   const [activeTab, setActiveTab] = useState('for_you');
+  const [currentPage, setCurrentPage] = useState(1);
   const feedRef = useRef(null);
   const loaderRef = useRef(null);
 
@@ -28,6 +28,7 @@ const Home = () => {
 
   const onTabChange = (tabId) => {
     setActiveTab(tabId);
+    setCurrentPage(1);
   };
 
   // Initial Load
@@ -35,11 +36,11 @@ const Home = () => {
     const fetchInitialPosts = async () => {
       try {
         if (activeTab === 'following') {
-          await fetchFollowingPosts({ offset: 0, limit: 3 });
+          await fetchFollowingPosts({ page: 1, limit: 3 });
         } else if (activeTab === 'friends') {
-          await fetchFriendsPosts({ offset: 0, limit: 3 });
+          await fetchFriendsPosts({ page: 1, limit: 3 });
         } else {
-          await fetchAllPosts({ offset: 0, limit: 3, filter: activeTab });
+          await fetchAllPosts({ page: 1, limit: 3, filter: activeTab });
         }
       } catch (error) {
         toast.error(error.message || 'Failed to load posts. Please try again.');
@@ -83,13 +84,15 @@ const Home = () => {
 
   const loadMorePosts = async () => {
     try {
+      const nextPage = currentPage + 1;
       if (activeTab === 'following') {
-        await fetchFollowingPosts({ offset: followingPosts.length, limit: 2 });
+        await fetchFollowingPosts({ page: nextPage, limit: 2 });
       } else if (activeTab === 'friends') {
-        await fetchFriendsPosts({ offset: friendsPosts.length, limit: 2 });
+        await fetchFriendsPosts({ page: nextPage, limit: 2 });
       } else {
-        await fetchAllPosts({ offset: posts.length, limit: 2, filter: activeTab });
+        await fetchAllPosts({ page: nextPage, limit: 2, filter: activeTab });
       }
+      setCurrentPage(nextPage);
     } catch (error) {
       toast.error(error.message || 'Failed to load more posts. Please try again.');
     }
@@ -115,8 +118,6 @@ const Home = () => {
               />
             </div>
 
-            <CreatePost />
-
             {/* Feed List */}
             <div ref={feedRef} className="flex-1">
               {error ? (
@@ -136,7 +137,7 @@ const Home = () => {
               ) : (
                 <>
                   {currentPosts.map((post) => (
-                    <div key={post.id} className="post-card-animate-in">
+                    <div key={post.id || post._id} className="post-card-animate-in">
                       <PostCard post={post} />
                     </div>
                   ))}

@@ -3,17 +3,77 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
 
 import StoryProgressBar from './StoryProgressBar';
+import { useModal } from '../../context/ModalContext';
+import { setStoryResumeSlideIndex } from '../../services/storyService';
 
-const STORY_DURATION = 5000;
+const DEFAULT_STORY_DURATION = 5000;
 
-const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
+const formatRelativeTimestamp = (timestamp, fallbackDate) => {
+  const parseDate = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  if (typeof timestamp === 'string') {
+    const normalized = timestamp.trim().toLowerCase();
+    if (normalized !== 'just now') {
+      const unitMatch = normalized.match(/^(\d+)\s*(s|sec|secs|seconds?)\s*ago$/);
+      if (unitMatch) {
+        return `${unitMatch[1]}s`;
+      }
+
+      const minMatch = normalized.match(/^(\d+)\s*(m|min|mins|minutes?)\s*ago$/);
+      if (minMatch) {
+        return `${minMatch[1]}m`;
+      }
+
+      const hourMatch = normalized.match(/^(\d+)\s*(h|hr|hrs|hours?)\s*ago$/);
+      if (hourMatch) {
+        return `${hourMatch[1]}h`;
+      }
+
+      const dayMatch = normalized.match(/^(\d+)\s*(d|day|days?)\s*ago$/);
+      if (dayMatch) {
+        return `${dayMatch[1]}d`;
+      }
+    }
+  }
+
+  const date = parseDate(timestamp) || parseDate(fallbackDate);
+  if (!date) {
+    return timestamp || '';
+  }
+
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days}d`;
+};
+
+const StoryViewer = ({ stories, startIndex = 0, startSlideIndex = 0, canDelete = false, onDelete, onStoryChange, onClose, onComplete }) => {
   const [storyIndex, setStoryIndex] = useState(startIndex);
-  const [slideIndex, setSlideIndex] = useState(0);
+  const [slideIndex, setSlideIndex] = useState(startSlideIndex);
   const [paused, setPaused] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
@@ -23,7 +83,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
   const holdTimeout = useRef(null);
   const isHolding = useRef(false);
 
-  // ─── GSAP open animation ──────────────────────────────────────────────────
   useEffect(() => {
     const tl = gsap.timeline();
     tl.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' });
@@ -36,39 +95,77 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     return () => tl.kill();
   }, []);
 
-  // ─── Close with GSAP ─────────────────────────────────────────────────────
-  const handleClose = useCallback(() => {
-    clearInterval(progressInterval.current);
-    const tl = gsap.timeline({ onComplete: () => onClose?.(storyIndex) });
-    tl.to(containerRef.current, { scale: 0.92, opacity: 0, duration: 0.25, ease: 'power2.in' });
-    tl.to(overlayRef.current, { opacity: 0, duration: 0.2, ease: 'power2.in' }, '-=0.1');
-  }, [onClose, storyIndex]);
+  useEffect(() => {
+    setStoryIndex(startIndex);
+    setSlideIndex(Math.min(startSlideIndex, stories[startIndex]?.slides.length - 1 || 0));
+  }, [startIndex, startSlideIndex, stories]);
+
+  useEffect(() => {
+    if (!stories?.length) return;
+
+    const clampedStoryIndex = Math.min(storyIndex, stories.length - 1);
+    if (clampedStoryIndex !== storyIndex) {
+      setStoryIndex(clampedStoryIndex);
+      return;
+    }
+
+    const slideCount = stories[storyIndex]?.slides.length ?? 0;
+    if (slideCount > 0 && slideIndex >= slideCount) {
+      setSlideIndex(slideCount - 1);
+    }
+  }, [stories, storyIndex, slideIndex]);
+
+  useEffect(() => {
+    const story = stories?.[storyIndex];
+    if (!story) return;
+
+    try {
+      setStoryResumeSlideIndex(story.id, slideIndex);
+    } catch {
+      // Ignore localStorage write failures
+    }
+  }, [storyIndex, slideIndex, stories]);
 
   const currentStory = stories[storyIndex];
   const currentSlide = currentStory?.slides[slideIndex];
   const totalSlides = currentStory?.slides.length ?? 0;
+  const storyDuration = currentSlide?.duration ?? DEFAULT_STORY_DURATION;
+
+  const handleClose = useCallback(() => {
+    clearInterval(progressInterval.current);
+    const tl = gsap.timeline({ onComplete: () => {
+      if (slideIndex === totalSlides - 1) {
+        onComplete?.(stories[storyIndex].id, storyIndex)
+      }
+      onClose?.(storyIndex)
+    }});
+    tl.to(containerRef.current, { scale: 0.92, opacity: 0, duration: 0.25, ease: 'power2.in' });
+    tl.to(overlayRef.current, { opacity: 0, duration: 0.2, ease: 'power2.in' }, '-=0.1');
+  }, [onClose, onComplete, slideIndex, storyIndex, stories, totalSlides]);
 
   const goNext = useCallback(() => {
     if (slideIndex < totalSlides - 1) {
       setCurrentProgress(0);
-      setSlideIndex(i => i + 1);
+      setSlideIndex((i) => i + 1);
     } else if (storyIndex < stories.length - 1) {
+      onComplete?.(stories[storyIndex].id, storyIndex);
       setCurrentProgress(0);
-      setStoryIndex(i => i + 1);
+      setStoryIndex((i) => i + 1);
       setSlideIndex(0);
     } else {
+      onComplete?.(stories[storyIndex].id, storyIndex);
       onClose?.(storyIndex);
     }
-  }, [slideIndex, storyIndex, stories.length, totalSlides, onClose]);
+  }, [slideIndex, storyIndex, stories, stories.length, totalSlides, onClose, onComplete]);
 
   const goPrev = useCallback(() => {
     if (slideIndex > 0) {
       setCurrentProgress(0);
-      setSlideIndex(i => i - 1);
+      setSlideIndex((i) => i - 1);
     } else if (storyIndex > 0) {
       const prevStory = stories[storyIndex - 1];
       setCurrentProgress(0);
-      setStoryIndex(i => i - 1);
+      setStoryIndex((i) => i - 1);
       setSlideIndex(prevStory.slides.length - 1);
     }
   }, [slideIndex, storyIndex, stories]);
@@ -86,8 +183,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     };
   }, []);
 
-
-  // ─── Progress ticker ──────────────────────────────────────────────────────
   const startProgress = useCallback(() => {
     clearInterval(progressInterval.current);
     progressStart.current = Date.now() - elapsed.current;
@@ -95,7 +190,7 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     progressInterval.current = setInterval(() => {
       if (isHolding.current) return;
       const delta = Date.now() - progressStart.current;
-      const pct = Math.min(delta / STORY_DURATION, 1);
+      const pct = Math.min(delta / storyDuration, 1);
       setCurrentProgress(pct);
 
       if (pct >= 1) {
@@ -104,7 +199,7 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
         goNext();
       }
     }, 30);
-  }, [goNext]);
+  }, [goNext, storyDuration]);
 
   useEffect(() => {
     elapsed.current = 0;
@@ -112,7 +207,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     return () => clearInterval(progressInterval.current);
   }, [slideIndex, storyIndex, startProgress]);
 
-  // Pause / resume on hold
   useEffect(() => {
     if (paused) {
       elapsed.current = Date.now() - (progressStart.current ?? Date.now());
@@ -123,7 +217,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     startProgress();
   }, [paused, startProgress]);
 
-  // Keyboard navigation
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'ArrowRight') goNext();
@@ -134,7 +227,27 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [goNext, goPrev, handleClose]);
 
-  // ─── Hold to pause handlers ───────────────────────────────────────────────
+  const { openConfirmModal } = useModal();
+
+  const handleDeleteSlide = useCallback(async () => {
+    if (!canDelete || !onDelete || !currentSlide) return;
+
+    openConfirmModal({
+      title: 'Delete story slide',
+      message: 'This will permanently delete the current story slide.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setIsDeleting(true);
+        try {
+          await onDelete(currentSlide.id, storyIndex, slideIndex);
+        } finally {
+          setIsDeleting(false);
+        }
+      },
+    });
+  }, [canDelete, currentSlide, onDelete, openConfirmModal, storyIndex, slideIndex]);
+
   const onPointerDown = () => {
     holdTimeout.current = setTimeout(() => {
       isHolding.current = true;
@@ -159,49 +272,54 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
       style={{ backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
       onClick={handleClose}
     >
-      {/* Story container */}
       <div
         ref={containerRef}
         className="relative flex items-center justify-center w-full h-full max-w-sm mx-auto"
         style={{ maxHeight: '100dvh' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Image fill */}
         <div
-          className="relative w-full h-full overflow-hidden rounded-none sm:rounded-3xl select-none"
+          className="relative w-full aspect-[9/16] max-h-[90vh] overflow-hidden rounded-none sm:rounded-3xl select-none"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
-          style={{ maxWidth: 420, maxHeight: '100dvh' }}
+          style={{ maxWidth: 420 }}
         >
-          {/* Background image */}
-          <img
-            key={currentSlide.id}
-            src={currentSlide.image}
-            alt={currentSlide.caption}
-            className="absolute inset-0 w-full h-full object-cover"
-            draggable={false}
-          />
+          {currentSlide.type === 'video' ? (
+            <video
+              key={currentSlide.id}
+              src={currentSlide.mediaUrl}
+              className="absolute inset-0 w-full h-full object-cover"
+              autoPlay
+              muted
+              playsInline
+              loop={false}
+            />
+          ) : (
+            <img
+              key={currentSlide.id}
+              src={currentSlide.mediaUrl}
+              alt={currentSlide.caption}
+              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
+            />
+          )}
 
-          {/* Gradient overlays — top & bottom for legibility */}
           <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
 
-          {/* ── Top bar: progress + user info ── */}
           <div className="absolute top-0 inset-x-0 px-4 pt-4 z-10">
-            {/* Segmented progress bars */}
-            <StoryProgressBar 
+            <StoryProgressBar
               slides={currentStory.slides}
               currentIndex={slideIndex}
               currentProgress={currentProgress}
             />
 
-            {/* User identity row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 shrink-0">
                   <img
-                    src={currentStory.user.avatar}
+                    src={currentStory.user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
                     alt={currentStory.user.name}
                     className="w-full h-full object-cover"
                   />
@@ -211,12 +329,21 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
                     {currentStory.user.name}
                   </span>
                   <span className="text-white/50 text-[11px] leading-tight">
-                    {currentSlide.timestamp}
+                    {formatRelativeTimestamp(currentSlide.timestamp, currentStory.createdAt)}
                   </span>
                 </div>
               </div>
 
-              {/* Close button */}
+              {canDelete && (
+                <button
+                  onClick={handleDeleteSlide}
+                  disabled={isDeleting}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-red-500/15 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+                  aria-label="Delete story slide"
+                >
+                  <Trash2 className="w-4 h-4" strokeWidth={2} />
+                </button>
+              )}
               <button
                 onClick={handleClose}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
@@ -227,7 +354,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
             </div>
           </div>
 
-          {/* ── Caption ── */}
           {currentSlide.caption && (
             <div className="absolute bottom-8 inset-x-0 px-5 z-10 pointer-events-none">
               <p className="text-white text-sm font-medium leading-snug drop-shadow-sm">
@@ -236,14 +362,11 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
             </div>
           )}
 
-          {/* ── Tap zones ── */}
-          {/* Left: previous */}
           <button
             className="absolute left-0 top-0 bottom-0 w-1/3 z-20"
             onClick={goPrev}
             aria-label="Previous"
           />
-          {/* Right: next */}
           <button
             className="absolute right-0 top-0 bottom-0 w-1/3 z-20"
             onClick={goNext}
@@ -251,7 +374,6 @@ const StoryViewer = ({ stories, startIndex = 0, onStoryChange, onClose }) => {
           />
         </div>
 
-        {/* ── External nav arrows (desktop only) ── */}
         <button
           onClick={goPrev}
           disabled={storyIndex === 0 && slideIndex === 0}

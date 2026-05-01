@@ -9,7 +9,7 @@ import { useModal } from '../../context/ModalContext';
 import { followUser, unfollowUser, checkFollowStatus } from '../../services/followService';
 import { useAuth } from '../../context/AuthContext';
 
-const ProfileHeader = ({ user, isOwnProfile }) => {
+const ProfileHeader = ({ user, isOwnProfile, onAvatarClick, hasStory = false }) => {
   const { openEditProfileModal } = useModal();
   const { user: currentUser } = useAuth();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -67,15 +67,21 @@ const ProfileHeader = ({ user, isOwnProfile }) => {
       {/* Profile Info */}
       <div className="px-4 md:px-6 -mt-16 md:-mt-20 relative z-10">
         <div className="flex justify-between items-end mb-4">
-          <div className="profile-header-anim w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#050505] overflow-hidden bg-white/10 shadow-2xl">
-            {user.profilePicture ? (
-              <img src={user.profilePicture} alt={user.fullName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
-                <span className="text-3xl font-bold text-white">{user.fullName?.charAt(0).toUpperCase()}</span>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={onAvatarClick}
+            className={`profile-header-anim w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary ${hasStory ? 'p-[2px] bg-gradient-to-br from-primary to-secondary' : 'border-4 border-[#050505]'}`}
+          >
+            <div className={`w-full h-full rounded-full overflow-hidden ${hasStory ? 'bg-[#050505]' : ''}`}>
+              {user.profilePicture ? (
+                <img src={user.profilePicture} alt={user.fullName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+                  <span className="text-3xl font-bold text-white">{user.fullName?.charAt(0).toUpperCase()}</span>
+                </div>
+              )}
+            </div>
+          </button>
           {isOwnProfile ? (
             <Button
               variant="outline"

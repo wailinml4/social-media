@@ -1,7 +1,6 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-import Bookmarks from './pages/Bookmarks';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Messages from './pages/Messages';
@@ -14,9 +13,11 @@ import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 
 import CreatePostModal from './components/post/create/CreatePostModal';
+import CreateStoryModal from './components/stories/CreateStoryModal';
 import PostModal from './components/post/modal/PostModal';
 import EditProfileModal from './components/profile/EditProfileModal';
 import FollowersModal from './components/profile/FollowersModal';
+import ConfirmModal from './components/ui/ConfirmModal';
 import Sidebar from './components/layout/Sidebar';
 
 import { ModalProvider } from './context/ModalContext';
@@ -82,7 +83,6 @@ const App = () => {
               <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/messages/:userId"  element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/notifications"     element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-              <Route path="/bookmarks"         element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
               <Route path="/profile"           element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/profile/:userId"   element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             </Routes>
@@ -92,8 +92,10 @@ const App = () => {
         {/* Global Post Modal */}
         <PostModal />
         <CreatePostModal />
+        <CreateStoryModal />
         <EditProfileModal />
         <FollowersModal />
+        <ConfirmModal />
         <Toaster position="top-center" toastOptions={{
           style: {
             background: '#1a1a1a',

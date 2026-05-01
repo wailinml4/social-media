@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
@@ -19,6 +19,7 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('connect', () => {
         setIsConnected(true);
+        newSocket.emit('get_online_users');
       });
 
       newSocket.on('connect_error', (error) => {
@@ -55,23 +56,23 @@ export const SocketProvider = ({ children }) => {
     }
   }, [user, token]);
 
-  const joinChat = (conversationId) => {
+  const joinChat = useCallback((conversationId) => {
     if (socket && isConnected) {
       socket.emit('join_chat', { conversationId });
     }
-  };
+  }, [socket, isConnected]);
 
-  const leaveChat = (conversationId) => {
+  const leaveChat = useCallback((conversationId) => {
     if (socket && isConnected) {
       socket.emit('leave_chat', { conversationId });
     }
-  };
+  }, [socket, isConnected]);
 
-  const sendMessage = (conversationId, content, attachments = []) => {
+  const sendMessage = useCallback((conversationId, content, attachments = []) => {
     if (socket && isConnected) {
       socket.emit('send_message', { conversationId, content, attachments });
     }
-  };
+  }, [socket, isConnected]);
 
   const emitTyping = (conversationId) => {
     if (socket && isConnected) {
@@ -91,29 +92,29 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
-  const emitUpdateMessage = (messageId, content) => {
+  const emitUpdateMessage = useCallback((messageId, content) => {
     if (socket && isConnected) {
       socket.emit('update_message', { messageId, content });
     }
-  };
+  }, [socket, isConnected]);
 
-  const emitDeleteMessage = (messageId) => {
+  const emitDeleteMessage = useCallback((messageId) => {
     if (socket && isConnected) {
       socket.emit('delete_message', { messageId });
     }
-  };
+  }, [socket, isConnected]);
 
-  const emitNotificationRead = (notificationId) => {
+  const emitNotificationRead = useCallback((notificationId) => {
     if (socket && isConnected) {
       socket.emit('notification_read', { notificationId });
     }
-  };
+  }, [socket, isConnected]);
 
-  const getOnlineUsers = () => {
+  const getOnlineUsers = useCallback(() => {
     if (socket && isConnected) {
       socket.emit('get_online_users');
     }
-  };
+  }, [socket, isConnected]);
 
   const onMessage = (callback) => {
     if (socket) {
@@ -211,40 +212,70 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  const value = useMemo(() => ({
+    socket,
+    isConnected,
+    onlineUsers,
+    joinChat,
+    leaveChat,
+    sendMessage,
+    emitTyping,
+    emitStopTyping,
+    emitMessageRead,
+    emitUpdateMessage,
+    emitDeleteMessage,
+    emitNotificationRead,
+    getOnlineUsers,
+    onMessage,
+    offMessage,
+    onTyping,
+    offTyping,
+    onStoppedTyping,
+    offStoppedTyping,
+    onNotification,
+    offNotification,
+    onConversationUpdated,
+    offConversationUpdated,
+    onMessageReadReceipt,
+    offMessageReadReceipt,
+    onMessageUpdated,
+    offMessageUpdated,
+    onMessageDeleted,
+    offMessageDeleted,
+  }), [
+    socket,
+    isConnected,
+    onlineUsers,
+    joinChat,
+    leaveChat,
+    sendMessage,
+    emitTyping,
+    emitStopTyping,
+    emitMessageRead,
+    emitUpdateMessage,
+    emitDeleteMessage,
+    emitNotificationRead,
+    getOnlineUsers,
+    onMessage,
+    offMessage,
+    onTyping,
+    offTyping,
+    onStoppedTyping,
+    offStoppedTyping,
+    onNotification,
+    offNotification,
+    onConversationUpdated,
+    offConversationUpdated,
+    onMessageReadReceipt,
+    offMessageReadReceipt,
+    onMessageUpdated,
+    offMessageUpdated,
+    onMessageDeleted,
+    offMessageDeleted,
+  ]);
+
   return (
-    <SocketContext.Provider
-      value={{
-        socket,
-        isConnected,
-        onlineUsers,
-        joinChat,
-        leaveChat,
-        sendMessage,
-        emitTyping,
-        emitStopTyping,
-        emitMessageRead,
-        emitUpdateMessage,
-        emitDeleteMessage,
-        emitNotificationRead,
-        getOnlineUsers,
-        onMessage,
-        offMessage,
-        onTyping,
-        offTyping,
-        onStoppedTyping,
-        offStoppedTyping,
-        onNotification,
-        offNotification,
-        onConversationUpdated,
-        offConversationUpdated,
-        onMessageReadReceipt,
-        offMessageReadReceipt,
-        onMessageUpdated,
-        offMessageUpdated,
-        onMessageDeleted,
-        offMessageDeleted,
-      }}
-    >
+    <SocketContext.Provider value={value}>
       {children}
     </SocketContext.Provider>
   );

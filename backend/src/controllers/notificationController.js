@@ -33,9 +33,9 @@ export const createNotification = async (req, res, next) => {
 export const getAllNotifications = async (req, res, next) => {
     try {
         const userId = req.user.userId
-        const { offset = 0, limit = 20 } = req.query
+        const { page = 1, limit = 20 } = req.query
 
-        const result = await getAllNotificationsService(userId, parseInt(offset), parseInt(limit))
+        const result = await getAllNotificationsService(userId, parseInt(page), parseInt(limit))
 
         return res.status(200).json({
             success: true,

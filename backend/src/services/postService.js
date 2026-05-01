@@ -10,51 +10,98 @@ export const createPostService = async ({ content, author, images }) => {
     return populatedPost
 }
 
-export const getAllPostsService = async ({ offset = 0, limit = 10, filter = 'for_you' } = {}) => {
+export const getAllPostsService = async ({ page = 1, limit = 10, filter = 'for_you' } = {}) => {
+    const skip = (page - 1) * limit
     const posts = await Post.find()
         .populate('author', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
-    return posts
+
+    const total = await Post.countDocuments()
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }
 
-export const getFollowingPostsService = async ({ userId, offset = 0, limit = 10 } = {}) => {
+export const getFollowingPostsService = async ({ userId, page = 1, limit = 10 } = {}) => {
     const follows = await Follow.find({ follower: userId })
     const followingIds = follows.map(f => f.following)
-    
+
+    const skip = (page - 1) * limit
     const posts = await Post.find({ author: { $in: followingIds } })
         .populate('author', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
-    return posts
+
+    const total = await Post.countDocuments({ author: { $in: followingIds } })
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }
 
-export const getUserPostsService = async ({ userId, offset = 0, limit = 10 } = {}) => {
+export const getUserPostsService = async ({ userId, page = 1, limit = 10 } = {}) => {
+    const skip = (page - 1) * limit
     const posts = await Post.find({ author: userId })
         .populate('author', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
-    return posts
+
+    const total = await Post.countDocuments({ author: userId })
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }
 
-export const getBookmarkedPostsService = async ({ userId, offset = 0, limit = 10 } = {}) => {
+export const getBookmarkedPostsService = async ({ userId, page = 1, limit = 10 } = {}) => {
+    const skip = (page - 1) * limit
     const bookmarks = await Bookmark.find({ user: userId })
         .populate('post')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
-    
+
     // Filter out bookmarks where post is null (orphaned bookmarks)
     const validBookmarks = bookmarks.filter(b => b.post !== null)
-    
+
     const posts = await Post.find({ _id: { $in: validBookmarks.map(b => b.post._id) } })
         .populate('author', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-    
-    return posts
+
+    const total = await Bookmark.countDocuments({ user: userId })
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }
 
 export const getPostByIdService = async (postId) => {
@@ -76,7 +123,9 @@ export const updatePostService = async (postId, { content, images }) => {
 export const deletePostService = async (postId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const authorId = post.author
@@ -88,7 +137,7 @@ export const deletePostService = async (postId) => {
     return post
 }
 
-export const getFriendsPostsService = async ({ userId, offset = 0, limit = 10 }) => {
+export const getFriendsPostsService = async ({ userId, page = 1, limit = 10 }) => {
     const Follow = (await import('../models/Follow.js')).default
 
     // Find users that the current user follows
@@ -104,11 +153,22 @@ export const getFriendsPostsService = async ({ userId, offset = 0, limit = 10 })
     const friendIds = followers.map(f => f.follower)
 
     // Get posts from friends with pagination
+    const skip = (page - 1) * limit
     const posts = await Post.find({ author: { $in: friendIds } })
         .populate('author', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
+        .skip(skip)
         .limit(limit)
 
-    return posts
+    const total = await Post.countDocuments({ author: { $in: friendIds } })
+
+    return {
+        posts,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }

@@ -4,59 +4,59 @@ import {
   getConversationMessagesService,
   markMessageAsReadService,
   markConversationMessagesAsReadService,
-} from '../services/messageService.js';
-import { getConversationByIdService } from '../services/conversationService.js';
-import mongoose from 'mongoose';
+} from "../services/messageService.js"
+import { getConversationByIdService } from "../services/conversationService.js"
+import mongoose from "mongoose"
 
 export const createMessage = async (req, res, next) => {
   try {
-    const { conversationId, content, attachments } = req.body;
-    const userId = req.user.userId;
+    const { conversationId, content, attachments } = req.body
+    const userId = req.user.userId
 
     if (!conversationId) {
       return res.status(400).json({
         success: false,
         message: 'Conversation ID is required',
-      });
+      })
     }
 
     if (!content && (!attachments || attachments.length === 0)) {
       return res.status(400).json({
         success: false,
         message: 'Content or attachments are required',
-      });
+      })
     }
 
     // Verify user is a participant using ObjectId comparison
-    const conversation = await getConversationByIdService(conversationId);
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const conversation = await getConversationByIdService(conversationId)
+    const userObjectId = new mongoose.Types.ObjectId(userId)
     const isParticipant = conversation.participants.some(
       (p) => p._id && p._id.equals(userObjectId)
-    );
+    )
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
         message: 'You are not a participant in this conversation',
-      });
+      })
     }
 
-    const result = await createMessageService(userId, conversationId, content, attachments);
+    const result = await createMessageService(userId, conversationId, content, attachments)
 
     return res.status(201).json({
       success: true,
       message: 'Message created successfully',
       data: result,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 export const getConversationMessages = async (req, res, next) => {
   try {
     const { conversationId } = req.params;
     const userId = req.user.userId;
-    const { offset = 0, limit = 50 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
 
     // Verify user is a participant using ObjectId comparison
     const conversation = await getConversationByIdService(conversationId);
@@ -73,12 +73,13 @@ export const getConversationMessages = async (req, res, next) => {
 
     const result = await getConversationMessagesService(
       conversationId,
-      parseInt(offset),
+      parseInt(page),
       parseInt(limit)
     );
 
     return res.status(200).json({
       success: true,
+      message: 'Conversation messages retrieved successfully',
       data: result,
     });
   } catch (error) {
@@ -88,61 +89,61 @@ export const getConversationMessages = async (req, res, next) => {
 
 export const markAsRead = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const userId = req.user.userId;
+    const { messageId } = req.params
+    const userId = req.user.userId
 
-    const message = await getMessageByIdService(id);
+    const message = await getMessageByIdService(messageId)
 
     // Verify user is a participant in the conversation using ObjectId comparison
-    const conversation = await getConversationByIdService(message.conversation);
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const conversation = await getConversationByIdService(message.conversation)
+    const userObjectId = new mongoose.Types.ObjectId(userId)
     const isParticipant = conversation.participants.some(
       (p) => p._id && p._id.equals(userObjectId)
-    );
+    )
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
         message: 'You are not a participant in this conversation',
-      });
+      })
     }
 
-    const updatedMessage = await markMessageAsReadService(id, userId);
+    const updatedMessage = await markMessageAsReadService(messageId, userId)
 
     return res.status(200).json({
       success: true,
       message: 'Message marked as read',
       data: updatedMessage,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 export const markConversationAsRead = async (req, res, next) => {
   try {
-    const { conversationId } = req.params;
-    const userId = req.user.userId;
+    const { conversationId } = req.params
+    const userId = req.user.userId
 
     // Verify user is a participant using ObjectId comparison
-    const conversation = await getConversationByIdService(conversationId);
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const conversation = await getConversationByIdService(conversationId)
+    const userObjectId = new mongoose.Types.ObjectId(userId)
     const isParticipant = conversation.participants.some(
       (p) => p._id && p._id.equals(userObjectId)
-    );
+    )
     if (!isParticipant) {
       return res.status(403).json({
         success: false,
         message: 'You are not a participant in this conversation',
-      });
+      })
     }
 
-    const result = await markConversationMessagesAsReadService(conversationId, userId);
+    const result = await markConversationMessagesAsReadService(conversationId, userId)
 
     return res.status(200).json({
       success: true,
       message: result.message,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}

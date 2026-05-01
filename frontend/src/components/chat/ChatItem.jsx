@@ -36,7 +36,12 @@ const ChatItem = ({ chat, isActive, onClick, isCollapsed }) => {
       {!isCollapsed && (
         <div className="flex-1 min-w-0 transition-opacity duration-300">
           <div className="flex justify-between items-baseline mb-1">
-            <h3 className="font-bold text-white truncate pr-2">{chat.user.name || chat.user.fullName}</h3>
+            <div className="flex items-center gap-2 truncate">
+              <h3 className="font-bold text-white truncate">{chat.user.name || chat.user.fullName}</h3>
+              {chat.user.online && (
+                <span className="inline-flex items-center justify-center h-2.5 w-2.5 rounded-full bg-green-500" aria-label="Online" />
+              )}
+            </div>
             <span className="text-xs text-text-dim whitespace-nowrap">{chat.time || chat.timestamp}</span>
           </div>
           <div className="flex justify-between items-center">

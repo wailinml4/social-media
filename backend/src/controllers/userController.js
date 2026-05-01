@@ -62,13 +62,13 @@ export const updateProfile = async (req, res, next) => {
 export const getSuggestedUsers = async (req, res, next) => {
     try {
         const userId = req.user.userId
-        const { limit = 5 } = req.query
-        const users = await getSuggestedUsersService({ userId, limit: parseInt(limit) })
+        const { page = 1, limit = 5 } = req.query
+        const result = await getSuggestedUsersService({ userId, page: parseInt(page), limit: parseInt(limit) })
 
         return res.status(200).json({
             success: true,
             message: "Suggested users retrieved successfully",
-            data: users,
+            data: result,
         })
     } catch (error) {
         next(error)

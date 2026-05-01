@@ -68,24 +68,3 @@ export const useProfileAnimation = (shouldAnimate, scope) => {
   }, { scope, dependencies: [shouldAnimate] });
 };
 
-/**
- * Hook for tab content transition animation
- */
-export const useTabTransition = (onComplete) => {
-  const animateTabChange = () => {
-    gsap.to('.content-grid-anim', {
-      opacity: 0,
-      y: 10,
-      duration: 0.2,
-      onComplete: () => {
-        onComplete();
-        gsap.fromTo('.content-grid-anim',
-          { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 0.4, stagger: 0.05 }
-        );
-      }
-    });
-  };
-
-  return animateTabChange;
-};

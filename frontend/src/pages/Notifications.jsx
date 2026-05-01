@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import { AtSign, Heart, MessageCircle, User, MoreHorizontal, Trash2 } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { useStaggeredFadeIn } from '../animations/useStaggeredFadeIn';
 
 const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
   const getIcon = () => {
@@ -46,6 +48,11 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
     }
   };
 
+  const handleProfileClick = (e) => {
+    e.stopPropagation();
+    navigate(`/profile/${notification.sender._id || notification.sender.id}`);
+  };
+
   const handleDelete = async (e) => {
     e.stopPropagation();
     try {
@@ -74,9 +81,13 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
           <img src={notification.sender.avatar} alt={notification.sender.name} className="w-8 h-8 rounded-full border border-white/10" />
         </div>
         <div className="text-[15px] mb-2">
-          <span className="font-bold text-white mr-1 hover:underline">
+          <button
+            type="button"
+            onClick={handleProfileClick}
+            className="font-bold text-white mr-1 hover:underline"
+          >
             {notification.sender.name}
-          </span>
+          </button>
           <span className="text-gray-300">{getText()}</span>
         </div>
         {notification.post && notification.post.content && (
@@ -134,7 +145,7 @@ const Notifications = () => {
   } = useNotifications();
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications({ page: 1, limit: 20 });
   }, [fetchNotifications]);
 
   const notificationTabs = [

@@ -18,16 +18,22 @@ const formatTime = (date) => {
 export const createCommentService = async (postId, userId, content, parentId = null) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     if (parentId) {
         const parentComment = await Comment.findById(parentId)
         if (!parentComment) {
-            throw new Error("Parent comment not found")
+            const error = new Error("Parent comment not found")
+            error.statusCode = 404
+            throw error
         }
         if (parentComment.post.toString() !== postId) {
-            throw new Error("Parent comment does not belong to this post")
+            const error = new Error("Parent comment does not belong to this post")
+            error.statusCode = 400
+            throw error
         }
     }
 
@@ -78,7 +84,9 @@ export const createCommentService = async (postId, userId, content, parentId = n
 export const getPostCommentsService = async (postId, page = 1, limit = 20) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const skip = (page - 1) * limit
@@ -120,7 +128,9 @@ export const getPostCommentsService = async (postId, page = 1, limit = 20) => {
 export const getCommentRepliesService = async (commentId, page = 1, limit = 10) => {
     const parentComment = await Comment.findById(commentId)
     if (!parentComment) {
-        throw new Error("Comment not found")
+        const error = new Error("Comment not found")
+        error.statusCode = 404
+        throw error
     }
 
     const skip = (page - 1) * limit
@@ -162,11 +172,15 @@ export const getCommentRepliesService = async (commentId, page = 1, limit = 10) 
 export const updateCommentService = async (commentId, userId, content) => {
     const comment = await Comment.findById(commentId)
     if (!comment) {
-        throw new Error("Comment not found")
+        const error = new Error("Comment not found")
+        error.statusCode = 404
+        throw error
     }
 
     if (comment.user.toString() !== userId) {
-        throw new Error("You can only edit your own comments")
+        const error = new Error("You can only edit your own comments")
+        error.statusCode = 403
+        throw error
     }
 
     comment.content = content
@@ -197,22 +211,28 @@ export const updateCommentService = async (commentId, userId, content) => {
 export const deleteCommentService = async (commentId, userId) => {
     const comment = await Comment.findById(commentId)
     if (!comment) {
-        throw new Error("Comment not found")
+        const error = new Error("Comment not found")
+        error.statusCode = 404
+        throw error
     }
 
     if (comment.user.toString() !== userId) {
-        throw new Error("You can only delete your own comments")
+        const error = new Error("You can only delete your own comments")
+        error.statusCode = 403
+        throw error
     }
 
     const post = await Post.findById(comment.post)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     // Delete all replies to this comment
     const replyCount = await Comment.countDocuments({ parent: commentId })
     await Comment.deleteMany({ parent: commentId })
-    
+
     // Delete the comment itself
     await Comment.findByIdAndDelete(commentId)
 

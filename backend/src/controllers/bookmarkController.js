@@ -35,13 +35,13 @@ export const unbookmarkPost = async (req, res, next) => {
 export const getUserBookmarkedPosts = async (req, res, next) => {
     try {
         const userId = req.user.userId
-        const { offset = 0, limit = 10 } = req.query
-        const posts = await getUserBookmarkedPostsService(userId, parseInt(offset), parseInt(limit))
+        const { page = 1, limit = 10 } = req.query
+        const result = await getUserBookmarkedPostsService(userId, parseInt(page), parseInt(limit))
 
         return res.status(200).json({
             success: true,
             message: "User bookmarked posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -71,6 +71,7 @@ export const checkBookmarkStatus = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
+            message: "Bookmark status retrieved successfully",
             data: { isBookmarked },
         })
     } catch (error) {

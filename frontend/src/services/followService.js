@@ -10,16 +10,16 @@ export const unfollowUser = async (userId) => {
   return response.data;
 };
 
-export const getFollowers = async (userId, offset = 0, limit = 10) => {
+export const getFollowers = async (userId, page = 1, limit = 10) => {
   const response = await axiosInstance.get(`/follow/${userId}/followers`, {
-    params: { offset, limit },
+    params: { page, limit },
   });
   return response.data;
 };
 
-export const getFollowees = async (userId, offset = 0, limit = 10) => {
+export const getFollowees = async (userId, page = 1, limit = 10) => {
   const response = await axiosInstance.get(`/follow/${userId}/following`, {
-    params: { offset, limit },
+    params: { page, limit },
   });
   return response.data;
 };
@@ -29,9 +29,9 @@ export const checkFollowStatus = async (userId) => {
   return response.data;
 };
 
-export const getFriends = async (userId, offset = 0, limit = 10) => {
+export const getFriends = async (userId, page = 1, limit = 10) => {
   const response = await axiosInstance.get(`/follow/${userId}/friends`, {
-    params: { offset, limit },
+    params: { page, limit },
   });
   return response.data;
 };

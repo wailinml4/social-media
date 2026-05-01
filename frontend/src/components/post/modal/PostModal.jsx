@@ -12,7 +12,7 @@ import PostComments from '../comments/PostComments';
 import { useModal } from '../../../context/ModalContext';
 import { useAuth } from '../../../context/AuthContext';
 import { usePosts } from '../../../context/PostContext';
-import { getPostComments, createComment, updateComment, deleteComment, getCommentReplies } from '../../../services/commentsService';
+import { getPostComments, createComment, updateComment, deleteComment, getCommentReplies } from '../../../services/commentService';
 import { useSimpleModalAnimation } from '../../../animations/useModalAnimation';
 import { likePost, unlikePost, checkLikeStatus } from '../../../services/likeService';
 import { bookmarkPost, unbookmarkPost, checkBookmarkStatus } from '../../../services/bookmarkService';

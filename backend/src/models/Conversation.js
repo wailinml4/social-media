@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose"
 
 const conversationSchema = new mongoose.Schema({
   participants: [
@@ -20,11 +20,11 @@ const conversationSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
-});
+})
 
 // Indexes for efficient querying
-conversationSchema.index({ participants: 1 });
-conversationSchema.index({ updatedAt: -1 });
-conversationSchema.index({ participants: 1, updatedAt: -1 });
+conversationSchema.index({ participants: 1 })
+conversationSchema.index({ updatedAt: -1 })
+conversationSchema.index({ participants: 1, updatedAt: -1 })
 
-export const Conversation = mongoose.model('Conversation', conversationSchema);
+export const Conversation = mongoose.model('Conversation', conversationSchema)

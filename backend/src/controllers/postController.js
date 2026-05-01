@@ -37,13 +37,13 @@ export const createPost = async (req, res, next) => {
 
 export const getAllPosts = async (req, res, next) => {
     try {
-        const { offset = 0, limit = 10, filter = 'for_you' } = req.query
-        const posts = await getAllPostsService({ offset: parseInt(offset), limit: parseInt(limit), filter })
+        const { page = 1, limit = 10, filter = 'for_you' } = req.query
+        const result = await getAllPostsService({ page: parseInt(page), limit: parseInt(limit), filter })
 
         return res.status(200).json({
             success: true,
             message: "Posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -53,13 +53,13 @@ export const getAllPosts = async (req, res, next) => {
 export const getFollowingPosts = async (req, res, next) => {
     try {
         const userId = req.user.userId
-        const { offset = 0, limit = 10 } = req.query
-        const posts = await getFollowingPostsService({ userId, offset: parseInt(offset), limit: parseInt(limit) })
+        const { page = 1, limit = 10 } = req.query
+        const result = await getFollowingPostsService({ userId, page: parseInt(page), limit: parseInt(limit) })
 
         return res.status(200).json({
             success: true,
             message: "Following posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -69,13 +69,13 @@ export const getFollowingPosts = async (req, res, next) => {
 export const getUserPosts = async (req, res, next) => {
     try {
         const { userId } = req.params
-        const { offset = 0, limit = 10 } = req.query
-        const posts = await getUserPostsService({ userId, offset: parseInt(offset), limit: parseInt(limit) })
+        const { page = 1, limit = 10 } = req.query
+        const result = await getUserPostsService({ userId, page: parseInt(page), limit: parseInt(limit) })
 
         return res.status(200).json({
             success: true,
             message: "User posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -85,13 +85,13 @@ export const getUserPosts = async (req, res, next) => {
 export const getBookmarkedPosts = async (req, res, next) => {
     try {
         const { userId } = req.params
-        const { offset = 0, limit = 10 } = req.query
-        const posts = await getBookmarkedPostsService({ userId, offset: parseInt(offset), limit: parseInt(limit) })
+        const { page = 1, limit = 10 } = req.query
+        const result = await getBookmarkedPostsService({ userId, page: parseInt(page), limit: parseInt(limit) })
 
         return res.status(200).json({
             success: true,
             message: "Bookmarked posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -187,13 +187,13 @@ export const deletePost = async (req, res, next) => {
 export const getFriendsPosts = async (req, res, next) => {
     try {
         const userId = req.user.userId
-        const { offset = 0, limit = 10 } = req.query
-        const posts = await getFriendsPostsService({ userId, offset: parseInt(offset), limit: parseInt(limit) })
+        const { page = 1, limit = 10 } = req.query
+        const result = await getFriendsPostsService({ userId, page: parseInt(page), limit: parseInt(limit) })
 
         return res.status(200).json({
             success: true,
             message: "Friends posts retrieved successfully",
-            data: posts,
+            data: result,
         })
     } catch (error) {
         next(error)

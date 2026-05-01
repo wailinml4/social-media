@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
 
         followerCount: { type: Number, default: 0 },
         followingCount: { type: Number, default: 0 },
+        friendsCount: { type: Number, default: 0 },
         postCount: { type: Number, default: 0 },
 
         isOnline: { type: Boolean, default: false },

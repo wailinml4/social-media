@@ -71,24 +71,60 @@ export const unfollowUserService = async (currentUserId, targetUserId) => {
     return { currentUser, targetUser }
 }
 
-export const getFollowersService = async (userId, offset = 0, limit = 10) => {
+const normalizePagination = (page = 1, limit = 10) => {
+    const normalizedPage = Math.max(1, parseInt(page, 10) || 1)
+    const normalizedLimit = Math.max(1, parseInt(limit, 10) || 10)
+    return {
+        page: normalizedPage,
+        limit: normalizedLimit,
+        skip: (normalizedPage - 1) * normalizedLimit,
+    }
+}
+
+export const getFollowersService = async (userId, page = 1, limit = 10) => {
+    const { page: normalizedPage, limit: normalizedLimit, skip } = normalizePagination(page, limit)
+
     const follows = await Follow.find({ following: userId })
         .populate('follower', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit)
+        .skip(skip)
+        .limit(normalizedLimit)
 
-    return follows.map(follow => follow.follower)
+    const total = await Follow.countDocuments({ following: userId })
+    const followers = follows.map(follow => follow.follower)
+
+    return {
+        followers,
+        pagination: {
+            page: normalizedPage,
+            limit: normalizedLimit,
+            total,
+            pages: Math.ceil(total / normalizedLimit),
+        },
+    }
 }
 
-export const getFolloweesService = async (userId, offset = 0, limit = 10) => {
+export const getFolloweesService = async (userId, page = 1, limit = 10) => {
+    const { page: normalizedPage, limit: normalizedLimit, skip } = normalizePagination(page, limit)
+
     const follows = await Follow.find({ follower: userId })
         .populate('following', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit)
+        .skip(skip)
+        .limit(normalizedLimit)
 
-    return follows.map(follow => follow.following)
+    const total = await Follow.countDocuments({ follower: userId })
+    const followees = follows.map(follow => follow.following)
+
+    return {
+        followees,
+        pagination: {
+            page: normalizedPage,
+            limit: normalizedLimit,
+            total,
+            pages: Math.ceil(total / normalizedLimit),
+        },
+    }
 }
 
 export const checkFollowStatusService = async (currentUserId, targetUserId) => {
@@ -96,19 +132,28 @@ export const checkFollowStatusService = async (currentUserId, targetUserId) => {
     return !!follow
 }
 
-export const getFriendsService = async (userId, offset = 0, limit = 10) => {
-    // Find users that the current user follows
-    const following = await Follow.find({ follower: userId })
-        .select('following')
-        .skip(offset)
-        .limit(limit)
-    
+export const getFriendsService = async (userId, page = 1, limit = 10) => {
+    const { page: normalizedPage, limit: normalizedLimit, skip } = normalizePagination(page, limit)
+
+    const following = await Follow.find({ follower: userId }).select('following')
     const followingIds = following.map(f => f.following)
-    
-    // Find users who also follow the current user (mutual follows)
+
     const followers = await Follow.find({ following: userId, follower: { $in: followingIds } })
         .populate('follower', 'fullName email profilePicture')
         .sort({ createdAt: -1 })
-    
-    return followers.map(f => f.follower)
+        .skip(skip)
+        .limit(normalizedLimit)
+
+    const total = await Follow.countDocuments({ following: userId, follower: { $in: followingIds } })
+    const friends = followers.map(f => f.follower)
+
+    return {
+        friends,
+        pagination: {
+            page: normalizedPage,
+            limit: normalizedLimit,
+            total,
+            pages: Math.ceil(total / normalizedLimit),
+        },
+    }
 }

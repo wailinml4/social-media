@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose"
 
 const messageSchema = new mongoose.Schema({
   sender: {
@@ -54,11 +54,11 @@ const messageSchema = new mongoose.Schema({
   },
 }, {
   timestamps: true,
-});
+})
 
 // Indexes for efficient querying
-messageSchema.index({ conversation: 1, createdAt: -1 });
-messageSchema.index({ sender: 1 });
-messageSchema.index({ conversation: 1, sender: 1 });
+messageSchema.index({ conversation: 1, createdAt: -1 })
+messageSchema.index({ sender: 1 })
+messageSchema.index({ conversation: 1, sender: 1 })
 
-export const Message = mongoose.model('Message', messageSchema);
+export const Message = mongoose.model('Message', messageSchema)

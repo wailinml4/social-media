@@ -1,4 +1,4 @@
-import User from '../../models/User.js';
+import User from "../../models/User.js"
 
 export const handlePresenceEvents = (io, socket) => {
   // Get list of online users
@@ -6,11 +6,11 @@ export const handlePresenceEvents = (io, socket) => {
     try {
       const onlineUsers = await User.find({ isOnline: true })
         .select('_id fullName email profilePicture')
-        .lean();
+        .lean()
 
-      socket.emit('online_users', onlineUsers);
+      socket.emit('online_users', onlineUsers)
     } catch (error) {
-      console.error('Error getting online users:', error);
+      console.error('Error getting online users:', error)
     }
-  });
-};
+  })
+}

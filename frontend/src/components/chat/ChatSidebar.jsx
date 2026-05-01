@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Edit, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
 
 import ChatItem from './ChatItem';
 import ChatListSkeleton from './ChatListSkeleton';
-import { useChat } from '../../context/ChatContext';
+import { useConversations } from '../../context/ConversationContext';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 
@@ -16,8 +16,13 @@ const ChatSidebar = ({
   handleSelectChat,
 }) => {
   const { user } = useAuth();
-  const { conversations, isLoadingConversations, error, selectConversation } = useChat();
-  const { onlineUsers } = useSocket();
+  const { conversations, isLoadingConversations, error, selectConversation } = useConversations();
+  const { onlineUsers, getOnlineUsers } = useSocket();
+  const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+
+  useEffect(() => {
+    getOnlineUsers();
+  }, [getOnlineUsers]);
 
   const handleChatClick = (conversation) => {
     const conversationId = conversation.id || conversation._id;
@@ -51,6 +56,8 @@ const ChatSidebar = ({
       index === self.findIndex((c) => c.id === chat.id)
     );
 
+  const visibleChats = showOnlineOnly ? transformedChats.filter((chat) => chat.user.online) : transformedChats;
+
   return (
     <div 
       className={`flex-shrink-0 flex flex-col border-r border-white/10 bg-bg-dark/95 backdrop-blur-xl z-20 transition-all duration-300 ${
@@ -60,7 +67,18 @@ const ChatSidebar = ({
       {/* Sidebar Header */}
       <div className={`px-4 py-3 sticky top-0 bg-bg-dark/90 backdrop-blur-xl z-10 border-b border-white/10 flex flex-col ${isChatListCollapsed ? 'items-center' : ''}`}>
         <div className={`flex items-center w-full mb-4 mt-2 ${isChatListCollapsed ? 'justify-center' : 'justify-between'}`}>
-          {!isChatListCollapsed && <h2 className="text-xl font-extrabold text-white">Messages</h2>}
+          {!isChatListCollapsed && (
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-extrabold text-white">Messages</h2>
+              <button
+                type="button"
+                onClick={() => setShowOnlineOnly((prev) => !prev)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${showOnlineOnly ? 'bg-green-500/15 text-green-300 border border-green-500/20' : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10'}`}
+              >
+                {showOnlineOnly ? 'Online only' : 'All chats'}
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {!isChatListCollapsed && (
               <button className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors">
@@ -112,8 +130,8 @@ const ChatSidebar = ({
             <h3 className="text-lg font-bold text-white mb-2">Failed to load conversations</h3>
             <p className="text-gray-500 text-sm">{error}</p>
           </div>
-        ) : transformedChats.length > 0 ? (
-          transformedChats.map(chat => (
+        ) : visibleChats.length > 0 ? (
+          visibleChats.map(chat => (
             <ChatItem
               key={chat.id}
               chat={chat}

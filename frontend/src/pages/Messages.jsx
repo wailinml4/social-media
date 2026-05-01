@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import ChatSidebar from '../components/chat/ChatSidebar';
 import ChatWindow from '../components/chat/ChatWindow';
-import { useChat } from '../context/ChatContext';
+import { useConversations } from '../context/ConversationContext';
 import { useAuth } from '../context/AuthContext';
 
 const Messages = () => {
@@ -14,7 +14,7 @@ const Messages = () => {
   const isCreatingConversationRef = useRef(false);
 
   const { user } = useAuth();
-  const { conversations, isLoadingConversations, createNewConversation, selectConversation } = useChat();
+  const { conversations, isLoadingConversations, createNewConversation, selectConversation } = useConversations();
 
   // Handle userId from URL - create or find conversation
   useEffect(() => {

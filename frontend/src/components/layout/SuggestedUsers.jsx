@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getSuggestedUsers } from '../../services/profileService';
+import { getSuggestedUsers } from '../../services/userService';
 import { followUser, unfollowUser } from '../../services/followService';
 import FollowButton from '../ui/FollowButton';
 import Card from '../ui/Card';
@@ -46,7 +46,7 @@ const SuggestedUsers = () => {
     const fetchSuggestedUsers = async () => {
       try {
         const data = await getSuggestedUsers({ limit: 5 });
-        const formattedUsers = data.map(user => ({
+        const formattedUsers = data.users.map(user => ({
           name: user.fullName,
           handle: user.email?.split('@')[0] || 'user',
           avatar: user.profilePicture || 'https://i.pravatar.cc/150',

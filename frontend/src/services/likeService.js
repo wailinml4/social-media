@@ -1,12 +1,12 @@
 import axiosInstance from '../config/api';
 
 export const likePost = async (postId) => {
-  const response = await axiosInstance.post(`/posts/${postId}/like`);
+  const response = await axiosInstance.post(`/posts/${postId}/likes`);
   return response.data;
 };
 
 export const unlikePost = async (postId) => {
-  const response = await axiosInstance.delete(`/posts/${postId}/like`);
+  const response = await axiosInstance.delete(`/posts/${postId}/likes`);
   return response.data;
 };
 

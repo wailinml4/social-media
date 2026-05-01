@@ -55,6 +55,7 @@ export const checkLikeStatus = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
+            message: "Like status retrieved successfully",
             data: { isLiked },
         })
     } catch (error) {

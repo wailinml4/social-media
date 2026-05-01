@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 
 import { useModal } from '../../context/ModalContext';
 import { useAuth } from '../../context/AuthContext';
-import { updateProfile } from '../../services/profileService';
+import { updateProfile } from '../../services/userService';
 import { uploadImage } from '../../services/uploadService';
 import { useModalAnimation } from '../../animations/useModalAnimation';
 import ProfileImageUpload from './ProfileImageUpload';

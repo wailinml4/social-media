@@ -9,8 +9,8 @@ import authenticate from "../middleware/authenticate.js"
 
 const router = express.Router()
 
-router.post("/posts/:postId/like", authenticate, likePost)
-router.delete("/posts/:postId/like", authenticate, unlikePost)
+router.post("/posts/:postId/likes", authenticate, likePost)
+router.delete("/posts/:postId/likes", authenticate, unlikePost)
 router.get("/posts/:postId/likes/count", authenticate, getPostLikeCount)
 router.get("/posts/:postId/likes/status", authenticate, checkLikeStatus)
 

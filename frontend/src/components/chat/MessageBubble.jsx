@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { MoreVertical, Trash2, Edit2, Check, X } from 'lucide-react';
-import { useChat } from '../../context/ChatContext';
+import { useMessages } from '../../context/MessageContext';
 import { useAuth } from '../../context/AuthContext';
 
 const MessageBubble = ({ message, isMe, isLastMessage }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
-  const { editMessage, removeMessage } = useChat();
+  const { editMessage, removeMessage } = useMessages();
   const { user } = useAuth();
 
   // Format full date for hover tooltip

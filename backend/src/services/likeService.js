@@ -5,7 +5,9 @@ import { createNotificationService } from "./notificationService.js"
 export const likePostService = async (postId, userId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const existingLike = await Like.findOne({ user: userId, post: postId })
@@ -33,7 +35,9 @@ export const likePostService = async (postId, userId) => {
 export const unlikePostService = async (postId, userId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
 
     const like = await Like.findOneAndDelete({ user: userId, post: postId })
@@ -48,7 +52,9 @@ export const unlikePostService = async (postId, userId) => {
 export const getPostLikeCountService = async (postId) => {
     const post = await Post.findById(postId)
     if (!post) {
-        throw new Error("Post not found")
+        const error = new Error("Post not found")
+        error.statusCode = 404
+        throw error
     }
     return post.likeCount
 }

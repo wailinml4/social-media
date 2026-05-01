@@ -1,34 +1,26 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import {
-  createConversation,
-  getConversations,
-  getConversation,
-  markConversationAsRead,
   createMessage,
   getMessages,
   markMessageAsRead,
-} from '../services/chatService';
+} from '../services/messageService';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
+import { useConversations } from './ConversationContext';
 
-export const ChatContext = createContext();
+export const MessageContext = createContext();
 
-export const ChatProvider = ({ children }) => {
-  const [conversations, setConversations] = useState([]);
-  const [currentConversation, setCurrentConversation] = useState(null);
+export const MessageProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
-  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [typingUsers, setTypingUsers] = useState({});
   const [error, setError] = useState(null);
 
   const { user } = useAuth();
+  const { currentConversation } = useConversations();
   const {
     isConnected,
-    joinChat,
-    leaveChat,
     sendMessage: socketSendMessage,
     emitTyping,
     emitStopTyping,
@@ -41,29 +33,13 @@ export const ChatProvider = ({ children }) => {
     offTyping,
     onStoppedTyping,
     offStoppedTyping,
-    onConversationUpdated,
-    offConversationUpdated,
-    onMessageReadReceipt,
-    offMessageReadReceipt,
     onMessageUpdated,
     offMessageUpdated,
     onMessageDeleted,
     offMessageDeleted,
+    onMessageReadReceipt,
+    offMessageReadReceipt,
   } = useSocket();
-
-  const fetchConversations = useCallback(async () => {
-    try {
-      setIsLoadingConversations(true);
-      setError(null);
-      const result = await getConversations();
-      setConversations(result.conversations || []);
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  }, []);
 
   const fetchMessages = useCallback(async (conversationId) => {
     try {
@@ -76,21 +52,6 @@ export const ChatProvider = ({ children }) => {
       throw error;
     } finally {
       setIsLoadingMessages(false);
-    }
-  }, []);
-
-  const createNewConversation = useCallback(async (participants) => {
-    try {
-      setIsCreatingConversation(true);
-      setError(null);
-      const conversation = await createConversation(participants);
-      setConversations((prev) => [conversation, ...prev]);
-      return conversation;
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    } finally {
-      setIsCreatingConversation(false);
     }
   }, []);
 
@@ -116,28 +77,7 @@ export const ChatProvider = ({ children }) => {
         setIsSendingMessage(false);
       }
     },
-    [isConnected, socketSendMessage]
-  );
-
-  const markAsRead = useCallback(
-    async (conversationId) => {
-      if (!user) return;
-      try {
-        setError(null);
-        await markConversationAsRead(conversationId);
-        setConversations((prev) =>
-          prev.map((conv) =>
-            conv.id === conversationId || conv._id === conversationId
-              ? { ...conv, unreadCount: { ...conv.unreadCount, [user._id]: 0 } }
-              : conv
-          )
-        );
-      } catch (error) {
-        setError(error.message);
-        throw error;
-      }
-    },
-    [user]
+    [isConnected, socketSendMessage, user]
   );
 
   const editMessage = useCallback(
@@ -192,17 +132,6 @@ export const ChatProvider = ({ children }) => {
     [isConnected, emitDeleteMessage]
   );
 
-  const selectConversation = useCallback(
-    async (conversation) => {
-      setCurrentConversation(conversation);
-      await fetchMessages(conversation.id || conversation._id);
-      if (isConnected) {
-        joinChat(conversation.id || conversation._id);
-      }
-    },
-    [fetchMessages, isConnected, joinChat]
-  );
-
   // Listen for real-time messages
   useEffect(() => {
     if (isConnected) {
@@ -213,23 +142,6 @@ export const ChatProvider = ({ children }) => {
         if (currentConversation && (message.conversation === currentConversation.id || message.conversation === currentConversation._id)) {
           setMessages((prev) => [...prev, message]);
         }
-
-        // Update conversation in list
-        setConversations((prev) => {
-          const updated = prev.map((conv) =>
-            conv.id === conversation.id || conv._id === conversation._id
-              ? { ...conv, lastMessage: conversation.lastMessage, unreadCount: conversation.unreadCount, updatedAt: conversation.updatedAt }
-              : conv
-          );
-          // Move updated conversation to top
-          const updatedConv = updated.find(
-            (c) => c.id === conversation.id || c._id === conversation._id
-          );
-          if (updatedConv) {
-            return [updatedConv, ...updated.filter((c) => c.id !== conversation.id && c._id !== conversation._id)];
-          }
-          return updated;
-        });
       });
 
       return () => {
@@ -237,32 +149,6 @@ export const ChatProvider = ({ children }) => {
       };
     }
   }, [isConnected, onMessage, offMessage, currentConversation]);
-
-  // Listen for conversation updates
-  useEffect(() => {
-    if (isConnected) {
-      onConversationUpdated((conversation) => {
-        setConversations((prev) => {
-          const updated = prev.map((conv) =>
-            conv.id === conversation.id || conv._id === conversation._id
-              ? { ...conv, lastMessage: conversation.lastMessage, unreadCount: conversation.unreadCount, updatedAt: conversation.updatedAt }
-              : conv
-          );
-          const updatedConv = updated.find(
-            (c) => c.id === conversation.id || c._id === conversation._id
-          );
-          if (updatedConv) {
-            return [updatedConv, ...updated.filter((c) => c.id !== conversation.id && c._id !== conversation._id)];
-          }
-          return updated;
-        });
-      });
-
-      return () => {
-        offConversationUpdated();
-      };
-    }
-  }, [isConnected, onConversationUpdated, offConversationUpdated]);
 
   // Listen for typing indicators
   useEffect(() => {
@@ -325,51 +211,31 @@ export const ChatProvider = ({ children }) => {
     }
   }, [isConnected, onMessageUpdated, offMessageUpdated, onMessageDeleted, offMessageDeleted, onMessageReadReceipt, offMessageReadReceipt]);
 
-  // Leave chat room when switching conversations
+  // Clear messages when conversation changes
   useEffect(() => {
-    return () => {
-      if (currentConversation && isConnected) {
-        leaveChat(currentConversation.id || currentConversation._id);
-      }
-    };
-  }, [currentConversation, isConnected, leaveChat]);
-
-  // Fetch conversations on mount
-  useEffect(() => {
-    if (user) {
-      fetchConversations();
-    }
-  }, [user, fetchConversations]);
+    setMessages([]);
+  }, [currentConversation]);
 
   return (
-    <ChatContext.Provider
+    <MessageContext.Provider
       value={{
-        conversations,
-        currentConversation,
         messages,
-        isLoadingConversations,
         isLoadingMessages,
-        isCreatingConversation,
         isSendingMessage,
         typingUsers,
         error,
-        fetchConversations,
         fetchMessages,
-        createNewConversation,
         sendMessage,
-        markAsRead,
         editMessage,
         removeMessage,
-        selectConversation,
-        setCurrentConversation,
         emitTyping,
         emitStopTyping,
         emitMessageRead,
       }}
     >
       {children}
-    </ChatContext.Provider>
+    </MessageContext.Provider>
   );
 };
 
-export const useChat = () => useContext(ChatContext);
+export const useMessages = () => useContext(MessageContext);

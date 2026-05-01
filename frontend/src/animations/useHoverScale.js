@@ -26,26 +26,6 @@ export const useHoverScale = (options = {}) => {
   return { handleMouseEnter, handleMouseLeave };
 };
 
-/**
- * Hook for click press animation
- */
-export const useClickPress = () => {
-  const handleClick = (element, onComplete) => {
-    if (element) {
-      gsap.to(element, {
-        scale: 0.94,
-        duration: 0.1,
-        ease: 'power2.in',
-        onComplete: () => {
-          gsap.to(element, { scale: 1, duration: 0.15, ease: 'power2.out' });
-          onComplete?.();
-        },
-      });
-    }
-  };
-
-  return handleClick;
-};
 
 /**
  * Hook for background color hover animation

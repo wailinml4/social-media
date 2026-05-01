@@ -6,7 +6,8 @@ import EmojiPicker from 'emoji-picker-react';
 import Button from '../ui/Button';
 import ChatMessageSkeleton from './ChatMessageSkeleton';
 import MessageBubble from './MessageBubble';
-import { useChat } from '../../context/ChatContext';
+import { useConversations } from '../../context/ConversationContext';
+import { useMessages } from '../../context/MessageContext';
 import { useAuth } from '../../context/AuthContext';
 import { uploadImage } from '../../services/uploadService';
 
@@ -15,8 +16,8 @@ const ChatWindow = ({
   setIsMobileListVisible,
 }) => {
   const { user } = useAuth();
+  const { currentConversation } = useConversations();
   const {
-    currentConversation,
     messages,
     isLoadingMessages,
     isSendingMessage,
@@ -24,8 +25,9 @@ const ChatWindow = ({
     sendMessage,
     emitTyping,
     emitStopTyping,
-    markAsRead,
-  } = useChat();
+    fetchMessages,
+  } = useMessages();
+  const { markAsRead } = useConversations();
 
   const [inputText, setInputText] = useState('');
   const [attachments, setAttachments] = useState([]);
@@ -40,6 +42,16 @@ const ChatWindow = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (currentConversation) {
+      const conversationId = currentConversation.id || currentConversation._id;
+      fetchMessages(conversationId).catch((error) => {
+        console.error('Failed to fetch messages:', error);
+      });
+    }
+  }, [currentConversation, fetchMessages]);
 
   // Mark conversation as read when opened
   useEffect(() => {

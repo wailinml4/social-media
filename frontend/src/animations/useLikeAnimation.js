@@ -19,18 +19,3 @@ export const useLikeAnimation = (iconRef, isLiked) => {
   return animateLike;
 };
 
-/**
- * Hook for message bubble pop animation
- */
-export const useMessageBubbleAnimation = () => {
-  const animateNewMessage = (element) => {
-    if (element) {
-      gsap.fromTo(element,
-        { scale: 0.9, opacity: 0, transformOrigin: 'bottom right' },
-        { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(1.5)' }
-      );
-    }
-  };
-
-  return animateNewMessage;
-};

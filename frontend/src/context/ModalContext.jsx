@@ -6,10 +6,13 @@ export const ModalProvider = ({ children }) => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [followersModalType, setFollowersModalType] = useState('followers');
   const [followersModalUserId, setFollowersModalUserId] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmModalData, setConfirmModalData] = useState(null);
 
   const openPostModal = (post) => {
     setSelectedPost(post);
@@ -27,6 +30,14 @@ export const ModalProvider = ({ children }) => {
 
   const closeCreatePostModal = () => {
     setIsCreatePostOpen(false);
+  };
+
+  const openCreateStoryModal = () => {
+    setIsCreateStoryOpen(true);
+  };
+
+  const closeCreateStoryModal = () => {
+    setIsCreateStoryOpen(false);
   };
 
   const openEditProfileModal = () => {
@@ -47,6 +58,16 @@ export const ModalProvider = ({ children }) => {
     setIsFollowersModalOpen(false);
   };
 
+  const openConfirmModal = (data) => {
+    setConfirmModalData(data);
+    setIsConfirmModalOpen(true);
+  };
+
+  const closeConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+    setTimeout(() => setConfirmModalData(null), 300);
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -61,10 +82,17 @@ export const ModalProvider = ({ children }) => {
         closePostModal,
         openCreatePostModal,
         closeCreatePostModal,
+        openCreateStoryModal,
+        closeCreateStoryModal,
+        isCreateStoryOpen,
         openEditProfileModal,
         closeEditProfileModal,
         openFollowersModal,
         closeFollowersModal,
+        isConfirmModalOpen,
+        confirmModalData,
+        openConfirmModal,
+        closeConfirmModal,
       }}
     >
       {children}

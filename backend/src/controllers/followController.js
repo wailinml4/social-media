@@ -43,13 +43,13 @@ export const unfollowUser = async (req, res, next) => {
 export const getFollowers = async (req, res, next) => {
     try {
         const { userId } = req.params
-        const { offset = 0, limit = 10 } = req.query
-        const followers = await getFollowersService(userId, parseInt(offset), parseInt(limit))
+        const { page = 1, limit = 10 } = req.query
+        const result = await getFollowersService(userId, parseInt(page), parseInt(limit))
 
         return res.status(200).json({
             success: true,
             message: "Followers retrieved successfully",
-            data: followers,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -59,13 +59,13 @@ export const getFollowers = async (req, res, next) => {
 export const getFollowees = async (req, res, next) => {
     try {
         const { userId } = req.params
-        const { offset = 0, limit = 10 } = req.query
-        const followees = await getFolloweesService(userId, parseInt(offset), parseInt(limit))
+        const { page = 1, limit = 10 } = req.query
+        const result = await getFolloweesService(userId, parseInt(page), parseInt(limit))
 
         return res.status(200).json({
             success: true,
             message: "Followees retrieved successfully",
-            data: followees,
+            data: result,
         })
     } catch (error) {
         next(error)
@@ -81,6 +81,7 @@ export const checkFollowStatus = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
+            message: "Follow status retrieved successfully",
             data: { isFollowing },
         })
     } catch (error) {
@@ -91,13 +92,13 @@ export const checkFollowStatus = async (req, res, next) => {
 export const getFriends = async (req, res, next) => {
     try {
         const { userId } = req.params
-        const { offset = 0, limit = 10 } = req.query
-        const friends = await getFriendsService(userId, parseInt(offset), parseInt(limit))
+        const { page = 1, limit = 10 } = req.query
+        const result = await getFriendsService(userId, parseInt(page), parseInt(limit))
 
         return res.status(200).json({
             success: true,
             message: "Friends retrieved successfully",
-            data: friends,
+            data: result,
         })
     } catch (error) {
         next(error)

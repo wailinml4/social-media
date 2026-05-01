@@ -9,23 +9,20 @@ export const getCurrentProfileService = async (userId) => {
         error.statusCode = 404
         throw error
     }
-    
+
     // Always calculate and update post count for accuracy
     const postCount = await Post.countDocuments({ author: userId })
     user.postCount = postCount
     await User.updateOne({ _id: userId }, { postCount })
-    
-    // Initialize friendsCount if undefined
-    if (user.friendsCount === undefined) {
-        // Calculate friends count (mutual follows)
-        const following = await Follow.find({ follower: userId }).select('following')
-        const followingIds = following.map(f => f.following)
-        const followers = await Follow.find({ following: userId, follower: { $in: followingIds } })
-        const friendsCount = followers.length
-        user.friendsCount = friendsCount
-        await User.updateOne({ _id: userId }, { friendsCount })
-    }
-    
+
+    // Always calculate friendsCount from mutual follows for accuracy
+    const following = await Follow.find({ follower: userId }).select('following')
+    const followingIds = following.map(f => f.following)
+    const followers = await Follow.find({ following: userId, follower: { $in: followingIds } })
+    const friendsCount = followers.length
+    user.friendsCount = friendsCount
+    await User.updateOne({ _id: userId }, { friendsCount })
+
     return user
 }
 
@@ -36,23 +33,20 @@ export const getProfileByIdService = async (userId) => {
         error.statusCode = 404
         throw error
     }
-    
+
     // Always calculate and update post count for accuracy
     const postCount = await Post.countDocuments({ author: userId })
     user.postCount = postCount
     await User.updateOne({ _id: userId }, { postCount })
-    
-    // Initialize friendsCount if undefined
-    if (user.friendsCount === undefined) {
-        // Calculate friends count (mutual follows)
-        const following = await Follow.find({ follower: userId }).select('following')
-        const followingIds = following.map(f => f.following)
-        const followers = await Follow.find({ following: userId, follower: { $in: followingIds } })
-        const friendsCount = followers.length
-        user.friendsCount = friendsCount
-        await User.updateOne({ _id: userId }, { friendsCount })
-    }
-    
+
+    // Always calculate friendsCount from mutual follows for accuracy
+    const following = await Follow.find({ follower: userId }).select('following')
+    const followingIds = following.map(f => f.following)
+    const followers = await Follow.find({ following: userId, follower: { $in: followingIds } })
+    const friendsCount = followers.length
+    user.friendsCount = friendsCount
+    await User.updateOne({ _id: userId }, { friendsCount })
+
     return user
 }
 
@@ -73,20 +67,32 @@ export const updateProfileService = async (userId, { fullName, bio, profilePictu
     return user
 }
 
-export const getSuggestedUsersService = async ({ userId, limit = 5 } = {}) => {
+export const getSuggestedUsersService = async ({ userId, page = 1, limit = 5 } = {}) => {
     // Get users that the current user follows
     const following = await Follow.find({ follower: userId }).select('following')
     const followingIds = following.map(f => f.following)
-    
+
     // Add current user to excluded list
     const excludedIds = [...followingIds, userId]
-    
+
+    const skip = (page - 1) * limit
     // Get users not followed by current user (excluding self)
     const suggestedUsers = await User.find({
         _id: { $nin: excludedIds }
     })
     .select('fullName email profilePicture bio')
+    .skip(skip)
     .limit(limit)
-    
-    return suggestedUsers
+
+    const total = await User.countDocuments({ _id: { $nin: excludedIds } })
+
+    return {
+        users: suggestedUsers,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    }
 }

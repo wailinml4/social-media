@@ -8,11 +8,10 @@ import PostGrid from '../components/profile/PostGrid';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import ProfileSkeleton from '../components/profile/ProfileSkeleton';
 import ProfileStats from '../components/profile/ProfileStats';
-import StoriesBar from '../components/stories/StoriesBar';
 import Tabs from '../components/ui/Tabs';
 import TrendingSidebar from '../components/layout/TrendingSidebar';
 
-import { getCurrentProfile, getProfileById, getUserBookmarks, getUserPosts } from '../services/profileService';
+import { getCurrentProfile, getProfileById, getUserBookmarks, getUserPosts } from '../services/userService';
 import { useProfileAnimation } from '../animations/useStaggeredFadeIn';
 import { useAuth } from '../context/AuthContext';
 import { usePosts } from '../context/PostContext';
@@ -67,6 +66,7 @@ const Profile = () => {
     setActiveTab(tabId);
   };
 
+
   const handleDeletePost = (postId) => {
     setPosts(prev => prev.filter(post => post._id !== postId));
     setBookmarks(prev => prev.filter(post => post._id !== postId));
@@ -111,9 +111,6 @@ const Profile = () => {
 
         {/* Stats Grid */}
         <ProfileStats stats={user} />
-
-        {/* Stories Section */}
-        <StoriesBar />
 
         {/* Tab Navigation */}
         <div className="px-4 md:px-6">

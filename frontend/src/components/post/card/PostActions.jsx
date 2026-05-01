@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Edit3, Trash2 } from 'lucide-react';
+import { useModal } from '../../../context/ModalContext';
 import LikeButton from '../../ui/LikeButton';
 import BookmarkButton from '../../ui/BookmarkButton';
 import CommentButton from '../../ui/CommentButton';
@@ -26,18 +27,26 @@ const PostActions = ({
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { openConfirmModal } = useModal();
 
   const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
-      await onDelete();
-      toast.success('Post deleted successfully');
-    } catch (error) {
-      toast.error(error.message || 'Failed to delete post');
-    } finally {
-      setIsDeleting(false);
-      setShowDropdown(false);
-    }
+    if (!onDelete) return;
+
+    openConfirmModal({
+      title: 'Delete post',
+      message: 'This action will permanently remove your post. Are you sure?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          setIsDeleting(true);
+          await onDelete();
+        } finally {
+          setIsDeleting(false);
+          setShowDropdown(false);
+        }
+      },
+    });
   };
 
   const handleEdit = () => {
