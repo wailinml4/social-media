@@ -10,7 +10,7 @@ import mongoose from "mongoose"
 
 export const createMessage = async (req, res, next) => {
   try {
-    const { conversationId, content, attachments } = req.body
+    const { conversationId, content, attachments, sharedPost } = req.body
     const userId = req.user.userId
 
     if (!conversationId) {
@@ -20,10 +20,10 @@ export const createMessage = async (req, res, next) => {
       })
     }
 
-    if (!content && (!attachments || attachments.length === 0)) {
+    if (!content && (!attachments || attachments.length === 0) && !sharedPost) {
       return res.status(400).json({
         success: false,
-        message: 'Content or attachments are required',
+        message: 'Content, attachments, or shared post data is required',
       })
     }
 
@@ -40,7 +40,7 @@ export const createMessage = async (req, res, next) => {
       })
     }
 
-    const result = await createMessageService(userId, conversationId, content, attachments)
+    const result = await createMessageService(userId, conversationId, content, attachments, sharedPost)
 
     return res.status(201).json({
       success: true,

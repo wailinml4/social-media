@@ -68,9 +68,9 @@ export const SocketProvider = ({ children }) => {
     }
   }, [socket, isConnected]);
 
-  const sendMessage = useCallback((conversationId, content, attachments = []) => {
+  const sendMessage = useCallback((conversationId, content, attachments = [], sharedPost = null) => {
     if (socket && isConnected) {
-      socket.emit('send_message', { conversationId, content, attachments });
+      socket.emit('send_message', { conversationId, content, attachments, sharedPost });
     }
   }, [socket, isConnected]);
 

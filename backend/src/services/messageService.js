@@ -19,7 +19,7 @@ const formatTime = (date) => {
   return date.toLocaleDateString()
 }
 
-export const createMessageService = async (senderId, conversationId, content, attachments = []) => {
+export const createMessageService = async (senderId, conversationId, content, attachments = [], sharedPost = null) => {
   const conversation = await Conversation.findById(conversationId)
 
   if (!conversation) {
@@ -39,6 +39,7 @@ export const createMessageService = async (senderId, conversationId, content, at
     conversation: conversationId,
     content,
     attachments,
+    sharedPost,
     deliveredAt: new Date(),
   })
 
@@ -274,6 +275,7 @@ const transformMessage = (message) => {
     conversation: message.conversation,
     content: message.content,
     attachments: message.attachments || [],
+    sharedPost: message.sharedPost || null,
     readBy: message.readBy.map((user) => ({
       _id: user._id,
       id: user._id,

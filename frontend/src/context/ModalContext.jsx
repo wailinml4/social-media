@@ -12,12 +12,24 @@ export const ModalProvider = ({ children }) => {
   const [followersModalType, setFollowersModalType] = useState('followers');
   const [followersModalUserId, setFollowersModalUserId] = useState(null);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [sharedPost, setSharedPost] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmModalData, setConfirmModalData] = useState(null);
 
   const openPostModal = (post) => {
     setSelectedPost(post);
     setIsPostModalOpen(true);
+  };
+
+  const openShareModal = (post) => {
+    setSharedPost(post);
+    setIsShareModalOpen(true);
+  };
+
+  const closeShareModal = () => {
+    setIsShareModalOpen(false);
+    setTimeout(() => setSharedPost(null), 300);
   };
 
   const closePostModal = () => {
@@ -88,6 +100,8 @@ export const ModalProvider = ({ children }) => {
         followersModalType,
         followersModalUserId,
         isSearchModalOpen,
+        isShareModalOpen,
+        sharedPost,
         openPostModal,
         closePostModal,
         openCreatePostModal,
@@ -101,6 +115,8 @@ export const ModalProvider = ({ children }) => {
         closeFollowersModal,
         openSearchModal,
         closeSearchModal,
+        openShareModal,
+        closeShareModal,
         isConfirmModalOpen,
         confirmModalData,
         openConfirmModal,

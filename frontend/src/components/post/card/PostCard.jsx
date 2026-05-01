@@ -17,7 +17,7 @@ import PostAuthor from './PostAuthor';
 import PostEditor from '../create/PostEditor';
 
 const PostCard = ({ post }) => {
-  const { openPostModal } = useModal();
+  const { openPostModal, openShareModal } = useModal();
   const { user: currentUser } = useAuth();
   const { deleteExistingPost, updateExistingPost } = usePosts();
   const [liked, setLiked] = useState(false);
@@ -205,6 +205,7 @@ const PostCard = ({ post }) => {
           onBookmark={handleSave}
           onDelete={handleDeletePost}
           onEdit={handleEditPost}
+          onShare={() => openShareModal(post)}
           showComments={true}
           showShare={true}
           variant="card"

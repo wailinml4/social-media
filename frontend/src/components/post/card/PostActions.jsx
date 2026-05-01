@@ -21,6 +21,7 @@ const PostActions = ({
   onBookmark,
   onDelete,
   onEdit,
+  onShare,
   showComments = true,
   showShare = true,
   variant = 'card',
@@ -76,7 +77,7 @@ const PostActions = ({
 
         {showShare && (
           <div className="flex-1 flex justify-center">
-            <ShareButton />
+            <ShareButton onClick={onShare} />
           </div>
         )}
 

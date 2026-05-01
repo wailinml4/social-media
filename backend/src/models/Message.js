@@ -15,6 +15,32 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  sharedPost: {
+    postId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
+    },
+    authorName: {
+      type: String,
+      trim: true,
+    },
+    authorHandle: {
+      type: String,
+      trim: true,
+    },
+    authorAvatar: {
+      type: String,
+      trim: true,
+    },
+    excerpt: {
+      type: String,
+      trim: true,
+    },
+    mediaUrl: {
+      type: String,
+      trim: true,
+    },
+  },
   attachments: [
     {
       type: {

@@ -1,7 +1,7 @@
 import axiosInstance from '../config/api';
 
-export const createMessage = async (conversationId, content, attachments = []) => {
-  const response = await axiosInstance.post('/messages', { conversationId, content, attachments });
+export const createMessage = async (conversationId, content, attachments = [], sharedPost = null) => {
+  const response = await axiosInstance.post('/messages', { conversationId, content, attachments, sharedPost });
   return response.data.data;
 };
 

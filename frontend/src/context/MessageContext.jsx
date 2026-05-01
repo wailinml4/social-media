@@ -56,7 +56,7 @@ export const MessageProvider = ({ children }) => {
   }, []);
 
   const sendMessage = useCallback(
-    async (conversationId, content, attachments = []) => {
+    async (conversationId, content, attachments = [], sharedPost = null) => {
       if (!user) return;
       try {
         setIsSendingMessage(true);
@@ -64,10 +64,10 @@ export const MessageProvider = ({ children }) => {
 
         // Send via socket for real-time delivery
         if (isConnected) {
-          socketSendMessage(conversationId, content, attachments);
+          socketSendMessage(conversationId, content, attachments, sharedPost);
         } else {
           // Fallback to REST API
-          const result = await createMessage(conversationId, content, attachments);
+          const result = await createMessage(conversationId, content, attachments, sharedPost);
           setMessages((prev) => [...prev, result.message]);
         }
       } catch (error) {

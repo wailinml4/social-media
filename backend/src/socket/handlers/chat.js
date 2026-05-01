@@ -15,9 +15,9 @@ export const handleChatEvents = (io, socket) => {
   })
 
   // Send a message
-  socket.on('send_message', async ({ conversationId, content, attachments }) => {
+  socket.on('send_message', async ({ conversationId, content, attachments, sharedPost }) => {
     try {
-      const result = await createMessageService(socket.userId, conversationId, content, attachments)
+      const result = await createMessageService(socket.userId, conversationId, content, attachments, sharedPost)
 
       // Emit to all users in the conversation room
       io.to(`chat:${conversationId}`).emit('message_received', result)
