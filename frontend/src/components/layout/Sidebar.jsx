@@ -11,7 +11,7 @@ import { useSidebarAnimation } from '../../animations/useSidebarAnimation';
 
 const NAV_ITEMS = [
   { to: '/',             icon: Home,          label: 'Home'          },
-  { to: '/search',       icon: Search,        label: 'Explore'       },
+  { to: '/search',       icon: Search,        label: 'Search'        },
   { to: '/notifications',icon: Bell,          label: 'Notifications' },
   { to: '/messages',     icon: MessageCircle, label: 'Messages'      },
   { to: '/profile',      icon: User,          label: 'Profile'       },
@@ -76,7 +76,7 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location  = useLocation()
   const currentPath = location.pathname
-  const { isCreatePostOpen, openCreatePostModal, openCreateStoryModal } = useModal()
+  const { isCreatePostOpen, openCreatePostModal, openCreateStoryModal, openSearchModal } = useModal()
   const [showCreateMenu, setShowCreateMenu] = useState(false)
 
   const asideRef     = useRef(null)
@@ -128,6 +128,7 @@ const Sidebar = () => {
               icon={icon}
               label={label}
               active={currentPath === to}
+              onClick={to === '/search' ? openSearchModal : undefined}
               badge={to === '/notifications' ? unreadCount : 0}
             />
           ))}

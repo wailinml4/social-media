@@ -3,7 +3,8 @@ import {
     getCurrentProfile,
     getProfileById,
     updateProfile,
-    getSuggestedUsers
+    getSuggestedUsers,
+    searchUsers
 } from "../controllers/userController.js"
 import authenticate from "../middleware/authenticate.js"
 
@@ -13,5 +14,6 @@ router.get("/me/profile", authenticate, getCurrentProfile)
 router.get("/:userId/profile", authenticate, getProfileById)
 router.put("/me/profile", authenticate, updateProfile)
 router.get("/suggested", authenticate, getSuggestedUsers)
+router.get("/search", authenticate, searchUsers)
 
 export default router

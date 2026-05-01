@@ -18,6 +18,7 @@ import PostModal from './components/post/modal/PostModal';
 import EditProfileModal from './components/profile/EditProfileModal';
 import FollowersModal from './components/profile/FollowersModal';
 import ConfirmModal from './components/ui/ConfirmModal';
+import SearchUsersModal from './components/layout/SearchUsersModal';
 import Sidebar from './components/layout/Sidebar';
 
 import { ModalProvider } from './context/ModalContext';
@@ -95,6 +96,7 @@ const App = () => {
         <CreateStoryModal />
         <EditProfileModal />
         <FollowersModal />
+        <SearchUsersModal />
         <ConfirmModal />
         <Toaster position="top-center" toastOptions={{
           style: {

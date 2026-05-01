@@ -11,6 +11,7 @@ export const ModalProvider = ({ children }) => {
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [followersModalType, setFollowersModalType] = useState('followers');
   const [followersModalUserId, setFollowersModalUserId] = useState(null);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmModalData, setConfirmModalData] = useState(null);
 
@@ -68,6 +69,14 @@ export const ModalProvider = ({ children }) => {
     setTimeout(() => setConfirmModalData(null), 300);
   };
 
+  const openSearchModal = () => {
+    setIsSearchModalOpen(true);
+  };
+
+  const closeSearchModal = () => {
+    setIsSearchModalOpen(false);
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -78,6 +87,7 @@ export const ModalProvider = ({ children }) => {
         isFollowersModalOpen,
         followersModalType,
         followersModalUserId,
+        isSearchModalOpen,
         openPostModal,
         closePostModal,
         openCreatePostModal,
@@ -89,6 +99,8 @@ export const ModalProvider = ({ children }) => {
         closeEditProfileModal,
         openFollowersModal,
         closeFollowersModal,
+        openSearchModal,
+        closeSearchModal,
         isConfirmModalOpen,
         confirmModalData,
         openConfirmModal,

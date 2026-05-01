@@ -29,3 +29,8 @@ export const getSuggestedUsers = async ({ page = 1, limit = 5 } = {}) => {
   const response = await axiosInstance.get(`/users/suggested?page=${page}&limit=${limit}`);
   return response.data.data;
 };
+
+export const searchUsers = async ({ query = '', limit = 10 } = {}) => {
+  const response = await axiosInstance.get(`/users/search?query=${encodeURIComponent(query)}&limit=${limit}`);
+  return response.data.data;
+};

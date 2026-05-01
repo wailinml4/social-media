@@ -2,7 +2,8 @@ import {
     getCurrentProfileService,
     getProfileByIdService,
     updateProfileService,
-    getSuggestedUsersService
+    getSuggestedUsersService,
+    searchUsersService
 } from "../services/userService.js"
 
 export const getCurrentProfile = async (req, res, next) => {
@@ -68,6 +69,22 @@ export const getSuggestedUsers = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "Suggested users retrieved successfully",
+            data: result,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const searchUsers = async (req, res, next) => {
+    try {
+        const userId = req.user.userId
+        const { query = '', limit = 10 } = req.query
+        const result = await searchUsersService({ userId, query: String(query), limit: parseInt(limit) })
+
+        return res.status(200).json({
+            success: true,
+            message: "Search results retrieved successfully",
             data: result,
         })
     } catch (error) {

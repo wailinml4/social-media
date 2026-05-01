@@ -96,3 +96,23 @@ export const getSuggestedUsersService = async ({ userId, page = 1, limit = 5 } =
         },
     }
 }
+
+export const searchUsersService = async ({ userId, query = '', limit = 10 } = {}) => {
+    const searchTerm = query.trim()
+    if (!searchTerm) {
+        return { users: [] }
+    }
+
+    const regex = new RegExp(searchTerm, 'i')
+    const users = await User.find({
+        _id: { $ne: userId },
+        $or: [
+            { fullName: regex },
+            { email: regex }
+        ]
+    })
+    .select('fullName email profilePicture bio')
+    .limit(limit)
+
+    return { users }
+}
