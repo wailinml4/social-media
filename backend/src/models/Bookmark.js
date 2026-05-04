@@ -1,11 +1,11 @@
-import mongoose from "mongoose"
+import mongoose from 'mongoose'
 
 const bookmarkSchema = new mongoose.Schema(
-    {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        post: { type: mongoose.Schema.Types.ObjectId, ref: "Post", required: true },
-    },
-    { timestamps: true },
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true },
+  },
+  { timestamps: true },
 )
 
 // Prevent duplicate bookmarks
@@ -15,5 +15,5 @@ bookmarkSchema.index({ post: 1 })
 // Efficient queries for getting user's bookmarked posts
 bookmarkSchema.index({ user: 1 })
 
-const Bookmark = mongoose.model("Bookmark", bookmarkSchema)
+const Bookmark = mongoose.model('Bookmark', bookmarkSchema)
 export default Bookmark

@@ -1,11 +1,11 @@
-import React from 'react';
+import React from 'react'
 
 const PostEditor = ({ content, onChange, onSave, onCancel, isSaving }) => {
   return (
-    <div onClick={(e) => e.stopPropagation()} className="space-y-2 mb-3">
+    <div onClick={e => e.stopPropagation()} className="space-y-2 mb-3">
       <textarea
         value={content}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder="What's on your mind?"
         rows={3}
         className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm resize-none focus:outline-none focus:border-white/20"
@@ -26,7 +26,7 @@ const PostEditor = ({ content, onChange, onSave, onCancel, isSaving }) => {
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PostEditor;
+export default PostEditor

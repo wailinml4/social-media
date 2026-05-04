@@ -1,9 +1,9 @@
-import React from 'react';
+import React from 'react'
 
-import { Link } from 'react-router-dom';
-import { Menu, X, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom'
+import { Menu, X, Zap } from 'lucide-react'
 
-import Button from '../ui/Button';
+import Button from '../ui/Button'
 
 const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
   return (
@@ -18,17 +18,27 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
-          {['Features', 'Wall of Love', 'Pricing', 'About'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} className="text-sm font-medium text-text-dim hover:text-white transition-colors">
+          {['Features', 'Wall of Love', 'Pricing', 'About'].map(item => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+              className="text-sm font-medium text-text-dim hover:text-white transition-colors"
+            >
               {item}
             </a>
           ))}
-          <Link to="/login"><Button variant="outline" size="sm">Log In</Button></Link>
-          <Link to="/signup"><Button size="sm">Get Started</Button></Link>
+          <Link to="/login">
+            <Button variant="outline" size="sm">
+              Log In
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button size="sm">Get Started</Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button 
+        <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
         >
@@ -40,17 +50,25 @@ const Navbar = ({ isMenuOpen, setIsMenuOpen }) => {
       {isMenuOpen && (
         <div className="md:hidden absolute top-full left-6 right-6 mt-4 p-6 rounded-3xl bg-black/90 backdrop-blur-2xl border border-white/10 animate-in slide-in-from-top-4 duration-300">
           <div className="flex flex-col gap-6">
-            {['Features', 'Wall of Love', 'Pricing', 'About'].map((item) => (
-              <a key={item} href="#" className="text-lg font-medium text-gray-400 hover:text-white">{item}</a>
+            {['Features', 'Wall of Love', 'Pricing', 'About'].map(item => (
+              <a key={item} href="#" className="text-lg font-medium text-gray-400 hover:text-white">
+                {item}
+              </a>
             ))}
             <div className="h-px bg-white/10" />
-            <Link to="/login"><Button variant="outline" className="w-full">Log In</Button></Link>
-            <Link to="/signup"><Button className="w-full">Get Started</Button></Link>
+            <Link to="/login">
+              <Button variant="outline" className="w-full">
+                Log In
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button className="w-full">Get Started</Button>
+            </Link>
           </div>
         </div>
       )}
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

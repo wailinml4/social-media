@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
 
 /**
  * Hook for slide-in panel animation (e.g., TrendingSidebar)
@@ -14,22 +14,22 @@ export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
     closeDuration = 0.42,
     staggerOpen = 0.06,
     staggerClose = 0.03,
-  } = options;
+  } = options
 
-  const closeTimerRef = useRef(null);
-  const isOpenRef = useRef(false);
-  const animationRef = useRef(null);
+  const closeTimerRef = useRef(null)
+  const isOpenRef = useRef(false)
+  const animationRef = useRef(null)
 
   const openPanel = () => {
-    clearTimeout(closeTimerRef.current);
+    clearTimeout(closeTimerRef.current)
 
-    if (isOpenRef.current || !panelRef.current || !triggerRef.current) return;
-    isOpenRef.current = true;
+    if (isOpenRef.current || !panelRef.current || !triggerRef.current) return
+    isOpenRef.current = true
 
-    animationRef.current?.kill();
+    animationRef.current?.kill()
     animationRef.current = gsap.timeline({
       defaults: { ease: 'power3.out' },
-    });
+    })
 
     animationRef.current
       .set(panelRef.current, { pointerEvents: 'auto' })
@@ -48,7 +48,7 @@ export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
           stagger: staggerOpen,
           clearProps: 'transform',
         },
-        '-=0.4'
+        '-=0.4',
       )
       .to(
         triggerRef.current,
@@ -57,20 +57,20 @@ export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
           duration: 0.2,
           pointerEvents: 'none',
         },
-        0
-      );
-  };
+        0,
+      )
+  }
 
   const closePanel = () => {
-    clearTimeout(closeTimerRef.current);
+    clearTimeout(closeTimerRef.current)
     closeTimerRef.current = setTimeout(() => {
-      if (!isOpenRef.current || !panelRef.current || !triggerRef.current) return;
-      isOpenRef.current = false;
+      if (!isOpenRef.current || !panelRef.current || !triggerRef.current) return
+      isOpenRef.current = false
 
-      animationRef.current?.kill();
+      animationRef.current?.kill()
       animationRef.current = gsap.timeline({
         defaults: { ease: 'power2.inOut' },
-      });
+      })
 
       animationRef.current
         .to('.trending-sidebar-card', {
@@ -87,10 +87,10 @@ export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
             duration: closeDuration,
             ease: 'power3.inOut',
             onComplete: () => {
-              gsap.set(panelRef.current, { pointerEvents: 'none' });
+              gsap.set(panelRef.current, { pointerEvents: 'none' })
             },
           },
-          0
+          0,
         )
         .to(
           triggerRef.current,
@@ -99,32 +99,32 @@ export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
             duration: 0.22,
             pointerEvents: 'auto',
           },
-          0.12
-        );
-    }, closeDelay);
-  };
+          0.12,
+        )
+    }, closeDelay)
+  }
 
   useEffect(() => {
     return () => {
-      clearTimeout(closeTimerRef.current);
-      animationRef.current?.kill();
-    };
-  }, [closeDelay]);
+      clearTimeout(closeTimerRef.current)
+      animationRef.current?.kill()
+    }
+  }, [closeDelay])
 
-  const initializePanel = (rootRef) => {
-    if (!panelRef.current || !triggerRef.current) return;
+  const initializePanel = () => {
+    if (!panelRef.current || !triggerRef.current) return
 
     gsap.set(panelRef.current, {
       xPercent: 100,
       autoAlpha: 0,
       pointerEvents: 'none',
-    });
+    })
 
     gsap.set('.trending-sidebar-card', {
       y: 18,
       autoAlpha: 0,
-    });
-  };
+    })
+  }
 
-  return { openPanel, closePanel, initializePanel };
-};
+  return { openPanel, closePanel, initializePanel }
+}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const PostAuthorInfo = ({ avatar, name, handle }) => {
   return (
@@ -16,7 +16,7 @@ const PostAuthorInfo = ({ avatar, name, handle }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PostAuthorInfo;
+export default PostAuthorInfo

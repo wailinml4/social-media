@@ -1,16 +1,20 @@
-import React from 'react';
+import React from 'react'
 
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react'
 
-import Card from '../ui/Card';
+import Card from '../ui/Card'
 
-import { trendingTopics } from '../../data/trending';
+import { trendingTopics } from '../../data/trending'
 
-const TrendingTopics = () => {
+const TrendingTopics = ({ className = '' }) => {
   return (
-    <Card className="trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-white/[0.04] shadow-none">
+    <Card
+      className={`trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-[#050505]/90 shadow-[0_24px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl ${className}`}
+    >
       <div className="px-5 pb-3 pt-5">
-        <h3 className="text-xl font-semibold tracking-[-0.03em] text-white">What&apos;s happening</h3>
+        <h3 className="text-xl font-semibold tracking-[-0.03em] text-text-dim">
+          What&apos;s happening
+        </h3>
       </div>
 
       {trendingTopics.map((topic, index) => (
@@ -21,7 +25,9 @@ const TrendingTopics = () => {
           }`}
         >
           <div className="flex items-start justify-between">
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-white/35">{topic.category}</div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-white/35">
+              {topic.category}
+            </div>
             <button className="-mt-0.5 text-text-dim transition-colors hover:text-white">
               <MoreHorizontal className="h-4 w-4" />
             </button>
@@ -35,7 +41,7 @@ const TrendingTopics = () => {
         Show more
       </div>
     </Card>
-  );
-};
+  )
+}
 
-export default TrendingTopics;
+export default TrendingTopics

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const StoryProgressBar = ({ slides, currentIndex, currentProgress }) => {
   return (
@@ -19,7 +19,7 @@ const StoryProgressBar = ({ slides, currentIndex, currentProgress }) => {
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default StoryProgressBar;
+export default StoryProgressBar

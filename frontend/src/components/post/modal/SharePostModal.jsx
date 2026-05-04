@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { X, Search, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -6,13 +6,16 @@ import { useModal } from '../../../context/ModalContext'
 import { useConversations } from '../../../context/ConversationContext'
 import { useMessages } from '../../../context/MessageContext'
 import { useAuth } from '../../../context/AuthContext'
+import { usePosts } from '../../../context/PostContext'
 import { searchUsers } from '../../../services/userService'
+import defaultAvatar from '../../../assets/default-avatar.svg'
 
 const SharePostModal = () => {
   const { isShareModalOpen, sharedPost, closeShareModal } = useModal()
-  const { conversations, createNewConversation } = useConversations()
+  const { createNewConversation } = useConversations()
   const { sendMessage } = useMessages()
   const { user } = useAuth()
+  const { patchPostState } = usePosts()
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -23,10 +26,10 @@ const SharePostModal = () => {
 
   useEffect(() => {
     if (!isShareModalOpen) {
-      setQuery('')
-      setResults([])
-      setError(null)
-      setIsSearching(false)
+      setTimeout(() => setQuery(''), 0)
+      setTimeout(() => setResults([]), 0)
+      setTimeout(() => setError(null), 0)
+      setTimeout(() => setIsSearching(false), 0)
       return
     }
 
@@ -35,9 +38,9 @@ const SharePostModal = () => {
 
   useEffect(() => {
     if (!query.trim()) {
-      setResults([])
-      setError(null)
-      setIsSearching(false)
+      setTimeout(() => setResults([]), 0)
+      setTimeout(() => setError(null), 0)
+      setTimeout(() => setIsSearching(false), 0)
       return
     }
 
@@ -59,11 +62,15 @@ const SharePostModal = () => {
     return () => clearTimeout(timer)
   }, [query])
 
-  const buildSharedMessage = (post) => {
+  const buildSharedMessage = post => {
     const authorName = post?.author?.fullName || post?.name || 'Unknown author'
     const authorHandle = post?.author?.email?.split('@')[0] || post?.author?.handle || 'unknown'
-    const excerpt = post?.content ? post.content.slice(0, 120) : ''
-    const mediaUrl = post?.images?.[0] || ''
+    const excerpt = post?.description
+      ? post.description.slice(0, 120)
+      : post?.content
+        ? post.content.slice(0, 120)
+        : ''
+    const mediaUrl = post?.media?.[0]?.url || post?.images?.[0] || ''
 
     return {
       postId: post?._id,
@@ -75,7 +82,7 @@ const SharePostModal = () => {
     }
   }
 
-  const handleShareToConversation = async (conversation) => {
+  const handleShareToConversation = async conversation => {
     if (!sharedPost || !conversation) return
 
     try {
@@ -84,6 +91,11 @@ const SharePostModal = () => {
       const messageText = `Shared a post from ${sharedPost.author?.fullName || sharedPost.author?.name || 'someone'}`
       const sharedPostPayload = buildSharedMessage(sharedPost)
       await sendMessage(conversationId, messageText, [], sharedPostPayload)
+      const postId = sharedPost?._id || sharedPost?.id || sharedPost?.postId
+      if (postId) {
+        const newShareCount = (sharedPost?.shareCount || 0) + 1
+        patchPostState(postId, { shareCount: newShareCount })
+      }
       toast.success('Post shared successfully')
       closeShareModal()
     } catch (err) {
@@ -94,7 +106,7 @@ const SharePostModal = () => {
     }
   }
 
-  const handleUserClick = async (userResult) => {
+  const handleUserClick = async userResult => {
     if (!userResult) return
     if (userResult._id === user?._id) {
       toast.error('Select someone else to share with')
@@ -113,41 +125,23 @@ const SharePostModal = () => {
     }
   }
 
-  const conversationOptions = useMemo(() => {
-    if (!user) return []
-    return conversations
-      .map((conversation) => {
-        const otherParticipants = conversation.participants.filter(
-          (participant) => participant.id !== user._id && participant._id !== user._id
-        )
-        const title = otherParticipants.length > 0
-          ? otherParticipants.map((participant) => participant.name).join(', ')
-          : 'Group chat'
-        return {
-          ...conversation,
-          title,
-          subtitle: conversation.lastMessage?.content || 'No recent messages',
-        }
-      })
-      .slice(0, 6)
-  }, [conversations, user])
+  // conversationOptions intentionally omitted for now
 
   if (!isShareModalOpen) return null
 
   return (
     <div className="fixed inset-0 z-[140] flex items-end justify-center sm:items-center sm:p-6">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-xl"
-        onClick={closeShareModal}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" onClick={closeShareModal} />
       <div
         className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-        onClick={(event) => event.stopPropagation()}
+        onClick={event => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold text-white">Share post in chat</h2>
-            <p className="text-sm text-white/60">Select a conversation or find someone to share with.</p>
+            <p className="text-sm text-white/60">
+              Select a conversation or find someone to share with.
+            </p>
           </div>
           <button
             type="button"
@@ -163,9 +157,9 @@ const SharePostModal = () => {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-2xl bg-white/10">
-                {sharedPost?.images?.[0] ? (
+                {sharedPost?.media?.[0]?.url || sharedPost?.images?.[0] ? (
                   <img
-                    src={sharedPost.images[0]}
+                    src={sharedPost?.media?.[0]?.url || sharedPost?.images?.[0]}
                     alt="Post preview"
                     className="h-full w-full object-cover"
                   />
@@ -176,12 +170,21 @@ const SharePostModal = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-white">{sharedPost?.author?.fullName || 'Unknown author'}</p>
-                <p className="truncate text-sm text-white/60">@{sharedPost?.author?.email?.split('@')[0] || sharedPost?.author?.handle || 'unknown'}</p>
+                <p className="truncate text-sm font-semibold text-white">
+                  {sharedPost?.author?.fullName || 'Unknown author'}
+                </p>
+                <p className="truncate text-sm text-white/60">
+                  @
+                  {sharedPost?.author?.email?.split('@')[0] ||
+                    sharedPost?.author?.handle ||
+                    'unknown'}
+                </p>
               </div>
             </div>
-            {sharedPost?.content && (
-              <p className="mt-3 text-sm leading-relaxed text-white/70 max-h-16 overflow-hidden">{sharedPost.content}</p>
+            {(sharedPost?.description || sharedPost?.content) && (
+              <p className="mt-3 text-sm leading-relaxed text-white/70 max-h-16 overflow-hidden">
+                {sharedPost.description || sharedPost.content}
+              </p>
             )}
           </div>
         </div>
@@ -194,7 +197,7 @@ const SharePostModal = () => {
             <input
               ref={inputRef}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
               placeholder="Search people to share with"
               className="w-full rounded-full border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/40 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
@@ -217,7 +220,7 @@ const SharePostModal = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {results.map((userResult) => (
+                {results.map(userResult => (
                   <button
                     type="button"
                     key={userResult._id}
@@ -227,14 +230,18 @@ const SharePostModal = () => {
                   >
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/10">
                       <img
-                        src={userResult.profilePicture || `https://i.pravatar.cc/150?u=${userResult._id}`}
+                        src={userResult.profilePicture || defaultAvatar}
                         alt={userResult.fullName}
                         className="h-full w-full object-cover"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">{userResult.fullName}</p>
-                      <p className="truncate text-sm text-white/50">@{userResult.email?.split('@')[0]}</p>
+                      <p className="truncate text-sm font-semibold text-white">
+                        {userResult.fullName}
+                      </p>
+                      <p className="truncate text-sm text-white/50">
+                        @{userResult.email?.split('@')[0]}
+                      </p>
                     </div>
                     <Send className="w-4 h-4 text-white/70" />
                   </button>
@@ -242,35 +249,9 @@ const SharePostModal = () => {
               </div>
             )
           ) : (
-            <>
-              {conversationOptions.length > 0 ? (
-                <div className="space-y-2">
-                  {conversationOptions.map((conversation) => (
-                    <button
-                      type="button"
-                      key={conversation.id || conversation._id}
-                      onClick={() => handleShareToConversation(conversation)}
-                      disabled={isSharing}
-                      className="w-full rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-white">{conversation.title}</p>
-                          <p className="truncate text-sm text-white/50">{conversation.subtitle}</p>
-                        </div>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/60">
-                          Share
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center text-sm text-white/60">
-                  No recent conversations yet. Search for someone to start a chat.
-                </div>
-              )}
-            </>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center text-sm text-white/60">
+              Start typing to search people to share with.
+            </div>
           )}
         </div>
       </div>

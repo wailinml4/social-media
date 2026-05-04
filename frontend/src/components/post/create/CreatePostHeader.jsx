@@ -1,6 +1,6 @@
-import React from 'react';
+import React from 'react'
 
-import { X } from 'lucide-react';
+import { X } from 'lucide-react'
 
 const CreatePostHeader = ({ onClose }) => {
   return (
@@ -18,7 +18,7 @@ const CreatePostHeader = ({ onClose }) => {
         <X className="h-4.5 w-4.5" />
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default CreatePostHeader;
+export default CreatePostHeader

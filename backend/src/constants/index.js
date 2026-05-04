@@ -5,5 +5,5 @@ export const RESET_PASSWORD_EXPIRY_HOURS = 1
 export const RESET_PASSWORD_EXPIRY_MS = RESET_PASSWORD_EXPIRY_HOURS * 60 * 60 * 1000
 export const PASSWORD_MIN_LENGTH = 6
 export const BCRYPT_SALT_ROUNDS = 12
-export const TOKEN_EXPIRY = "1hr"
+export const TOKEN_EXPIRY = '1hr'
 export const COOKIE_MAX_AGE = 3600000

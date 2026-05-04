@@ -1,13 +1,20 @@
-import React from 'react';
+import React from 'react'
 
-const PostModalCaption = ({ post, isEditing, editContent, onEditContentChange, onSaveEdit, onCancelEdit }) => {
+const PostModalCaption = ({
+  post,
+  isEditing,
+  editContent,
+  onEditContentChange,
+  onSaveEdit,
+  onCancelEdit,
+}) => {
   return (
     <div className="modal-detail-item">
       {isEditing ? (
         <div className="space-y-3">
           <textarea
             value={editContent}
-            onChange={(e) => onEditContentChange(e.target.value)}
+            onChange={e => onEditContentChange(e.target.value)}
             placeholder="What's on your mind?"
             rows={4}
             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm resize-none focus:outline-none focus:border-white/20"
@@ -30,16 +37,14 @@ const PostModalCaption = ({ post, isEditing, editContent, onEditContentChange, o
       ) : (
         <>
           <p className="text-white text-[14px] leading-relaxed mb-2">
-            {post?.content}
+            {post?.description || post?.content}
           </p>
-          <div className="flex flex-wrap gap-2 text-primary text-sm font-medium mb-3">
-            <span>#webdesign</span> <span>#frontend</span> <span>#gsap</span>
-          </div>
-          <span className="text-text-dim text-[12px]">{post?.time} ago</span>
+
+          <span className="text-text-dim text-[12px]">{post?.time}</span>
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PostModalCaption;
+export default PostModalCaption

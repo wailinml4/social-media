@@ -1,11 +1,11 @@
-import express from "express"
-import authenticate from "../middleware/authenticate.js"
+import express from 'express'
+import authenticate from '../middleware/authenticate.js'
 import {
   createMessage,
   getConversationMessages,
   markAsRead,
   markConversationAsRead,
-} from "../controllers/messageController.js"
+} from '../controllers/messageController.js'
 
 const router = express.Router()
 

@@ -1,30 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react'
 
-const Dropdown = ({
-  trigger,
-  children,
-  isOpen,
-  onToggle,
-  align = 'right',
-  className = '',
-}) => {
-  const dropdownRef = useRef(null);
+const Dropdown = ({ trigger, children, isOpen, onToggle, align = 'right', className = '' }) => {
+  const dropdownRef = useRef(null)
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        if (isOpen) onToggle(false);
+        if (isOpen) onToggle(false)
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, onToggle]);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen, onToggle])
 
   const alignClasses = {
     right: 'right-0',
     left: 'left-0',
     center: 'left-1/2 -translate-x-1/2',
-  };
+  }
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
@@ -37,7 +30,7 @@ const Dropdown = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Dropdown;
+export default Dropdown

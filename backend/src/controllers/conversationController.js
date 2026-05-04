@@ -3,8 +3,8 @@ import {
   getConversationByIdService,
   getUserConversationsService,
   markConversationAsReadService,
-} from "../services/conversationService.js"
-import mongoose from "mongoose"
+} from '../services/conversationService.js'
+import mongoose from 'mongoose'
 
 export const createConversation = async (req, res, next) => {
   try {
@@ -44,9 +44,7 @@ export const getConversation = async (req, res, next) => {
 
     // Verify user is a participant using ObjectId comparison
     const userObjectId = new mongoose.Types.ObjectId(userId)
-    const isParticipant = conversation.participants.some(
-      (p) => p._id && p._id.equals(userObjectId)
-    )
+    const isParticipant = conversation.participants.some(p => p._id && p._id.equals(userObjectId))
 
     if (!isParticipant) {
       return res.status(403).json({
@@ -67,24 +65,20 @@ export const getConversation = async (req, res, next) => {
 
 export const getUserConversations = async (req, res, next) => {
   try {
-    const userId = req.user.userId;
-    const { page = 1, limit = 20 } = req.query;
+    const userId = req.user.userId
+    const { page = 1, limit = 20 } = req.query
 
-    const result = await getUserConversationsService(
-      userId,
-      parseInt(page),
-      parseInt(limit)
-    );
+    const result = await getUserConversationsService(userId, parseInt(page), parseInt(limit))
 
     return res.status(200).json({
       success: true,
       message: 'User conversations retrieved successfully',
       data: result,
-    });
+    })
   } catch (error) {
-    next(error);
+    next(error)
   }
-};
+}
 
 export const markAsRead = async (req, res, next) => {
   try {
@@ -95,9 +89,7 @@ export const markAsRead = async (req, res, next) => {
 
     // Verify user is a participant using ObjectId comparison
     const userObjectId = new mongoose.Types.ObjectId(userId)
-    const isParticipant = conversation.participants.some(
-      (p) => p._id && p._id.equals(userObjectId)
-    )
+    const isParticipant = conversation.participants.some(p => p._id && p._id.equals(userObjectId))
 
     if (!isParticipant) {
       return res.status(403).json({

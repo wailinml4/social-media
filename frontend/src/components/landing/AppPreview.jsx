@@ -1,16 +1,18 @@
-import React, { useRef } from 'react';
+import React, { useRef } from 'react'
 
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { Heart, MessageCircle, Share2 } from 'lucide-react'
 
-import { landingMockPosts } from '../../data/landing';
+import { landingMockPosts } from '../../data/landing'
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger)
 
 const MockPost = ({ name, handle, time, content, likes, comments, className = '' }) => (
-  <div className={`mock-post p-5 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:bg-white/[0.06] transition-colors duration-300 ${className}`}>
+  <div
+    className={`mock-post p-5 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl hover:bg-white/[0.06] transition-colors duration-300 ${className}`}
+  >
     <div className="flex items-start gap-4">
       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex-shrink-0" />
       <div className="flex-1 min-w-0">
@@ -35,48 +37,54 @@ const MockPost = ({ name, handle, time, content, likes, comments, className = ''
       </div>
     </div>
   </div>
-);
+)
 
 const AppPreview = () => {
-  const container = useRef();
+  const container = useRef()
 
-  useGSAP(() => {
-    gsap.from(".mock-post", {
-      opacity: 0,
-      x: 50,
-      stagger: 0.2,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: container.current,
-        start: "top 70%",
-        toggleActions: "play none none reverse"
-      }
-    });
+  useGSAP(
+    () => {
+      gsap.from('.mock-post', {
+        opacity: 0,
+        x: 50,
+        stagger: 0.2,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: container.current,
+          start: 'top 70%',
+          toggleActions: 'play none none reverse',
+        },
+      })
 
-    gsap.from(".app-preview-text > *", {
-      opacity: 0,
-      y: 20,
-      stagger: 0.1,
-      duration: 0.8,
-      scrollTrigger: {
-        trigger: container.current,
-        start: "top 80%"
-      }
-    });
-  }, { scope: container });
+      gsap.from('.app-preview-text > *', {
+        opacity: 0,
+        y: 20,
+        stagger: 0.1,
+        duration: 0.8,
+        scrollTrigger: {
+          trigger: container.current,
+          start: 'top 80%',
+        },
+      })
+    },
+    { scope: container },
+  )
 
   return (
-    <section ref={container} className="py-24 px-6 overflow-hidden bg-gradient-to-b from-transparent via-primary/5 to-transparent">
+    <section
+      ref={container}
+      className="py-24 px-6 overflow-hidden bg-gradient-to-b from-transparent via-primary/5 to-transparent"
+    >
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
         <div className="lg:w-1/2 text-left app-preview-text">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Designed for clarity.</h2>
           <p className="text-text-dim text-lg mb-8 leading-relaxed">
-            Stop fighting algorithms. Nexus provides a clean, chronological experience 
-            that puts your content and your community first.
+            Stop fighting algorithms. Nexus provides a clean, chronological experience that puts
+            your content and your community first.
           </p>
           <ul className="space-y-4 text-gray-300">
-            {['Chronological Feed', 'No Targeted Ads', 'End-to-End Encryption'].map((item) => (
+            {['Chronological Feed', 'No Targeted Ads', 'End-to-End Encryption'].map(item => (
               <li key={item} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-primary" />
@@ -86,7 +94,7 @@ const AppPreview = () => {
             ))}
           </ul>
         </div>
-        
+
         <div className="lg:w-1/2 relative">
           <div className="mock-posts-container flex flex-col gap-4">
             {landingMockPosts.map((post, index) => (
@@ -97,7 +105,7 @@ const AppPreview = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default AppPreview;
+export default AppPreview

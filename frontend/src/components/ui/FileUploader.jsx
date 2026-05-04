@@ -1,53 +1,52 @@
-import React, { useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useRef, useState } from 'react'
+import { X } from 'lucide-react'
 
 const FileUploader = ({
   onFilesChange,
   accept = 'image/*,video/*',
   multiple = false,
-  maxFiles = 10,
   className = '',
   children,
 }) => {
-  const fileInputRef = useRef(null);
-  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef(null)
+  const [isDragActive, setIsDragActive] = useState(false)
 
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files || e.dataTransfer?.files || []);
-    if (files.length === 0) return;
+  const handleFileSelect = e => {
+    const files = Array.from(e.target.files || e.dataTransfer?.files || [])
+    if (files.length === 0) return
 
     const processedFiles = files.map(file => ({
       id: `${file.name}-${file.size}-${file.lastModified}`,
       file,
       type: file.type.startsWith('video') ? 'video' : 'image',
       preview: URL.createObjectURL(file),
-    }));
+    }))
 
-    onFilesChange(processedFiles);
-    
+    onFilesChange(processedFiles)
+
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = ''
     }
-  };
+  }
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragActive(true);
-  };
+  const handleDragOver = e => {
+    e.preventDefault()
+    setIsDragActive(true)
+  }
 
   const handleDragLeave = () => {
-    setIsDragActive(false);
-  };
+    setIsDragActive(false)
+  }
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragActive(false);
-    handleFileSelect(e);
-  };
+  const handleDrop = e => {
+    e.preventDefault()
+    setIsDragActive(false)
+    handleFileSelect(e)
+  }
 
   const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
   return (
     <div
@@ -64,15 +63,31 @@ const FileUploader = ({
         onChange={handleFileSelect}
         className="hidden"
       />
-      {children({ isDragActive, handleClick })}
+      {/* Support element children: clone and attach onClick handler.
+          If a render-prop function is provided, call it without passing
+          handlers that access refs to avoid reading refs during render. */}
+      {(() => {
+        const produced = typeof children === 'function' ? children({ isDragActive }) : children
+
+        if (React.isValidElement(produced)) {
+          const existingOnClick = produced.props?.onClick
+          const mergedOnClick = e => {
+            if (typeof existingOnClick === 'function') existingOnClick(e)
+            handleClick()
+          }
+          return React.cloneElement(produced, { onClick: mergedOnClick })
+        }
+
+        return produced
+      })()}
     </div>
-  );
-};
+  )
+}
 
 const MediaPreview = ({ items, onRemove }) => {
   return (
     <div className="grid grid-cols-2 gap-2">
-      {items.map((item) => (
+      {items.map(item => (
         <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
           {item.type === 'video' ? (
             <video src={item.preview} controls className="w-full h-full object-cover" />
@@ -88,9 +103,9 @@ const MediaPreview = ({ items, onRemove }) => {
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-FileUploader.MediaPreview = MediaPreview;
+FileUploader.MediaPreview = MediaPreview
 
-export default FileUploader;
+export default FileUploader

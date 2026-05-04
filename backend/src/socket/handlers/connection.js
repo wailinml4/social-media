@@ -1,4 +1,4 @@
-import User from "../../models/User.js"
+import User from '../../models/User.js'
 
 export const handleConnection = (io, socket) => {
   // Join user's personal room for direct notifications
@@ -8,7 +8,7 @@ export const handleConnection = (io, socket) => {
   User.findByIdAndUpdate(socket.userId, {
     isOnline: true,
     lastSeen: new Date(),
-  }).catch((error) => {
+  }).catch(error => {
     console.error('Error setting user online:', error)
   })
 
@@ -27,7 +27,7 @@ export const handleConnection = (io, socket) => {
     await User.findByIdAndUpdate(socket.userId, {
       isOnline: false,
       lastSeen: new Date(),
-    }).catch((error) => {
+    }).catch(error => {
       console.error('Error setting user offline:', error)
     })
 

@@ -1,13 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { getSuggestedUsers } from '../../services/userService';
-import { followUser, unfollowUser } from '../../services/followService';
-import FollowButton from '../ui/FollowButton';
-import Card from '../ui/Card';
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { getSuggestedUsers } from '../../services/userService'
+import defaultAvatar from '../../assets/default-avatar.svg'
+import { followUser, unfollowUser } from '../../services/followService'
+import FollowButton from '../ui/FollowButton'
+import Card from '../ui/Card'
 
-const SuggestedUser = ({ name, handle, avatar, userId, isFollowing, isFollowingLoading, onFollow }) => {
-  const navigate = useNavigate();
+const SuggestedUser = ({
+  name,
+  handle,
+  avatar,
+  userId,
+  isFollowing,
+  isFollowingLoading,
+  onFollow,
+}) => {
+  const navigate = useNavigate()
 
   return (
     <div className="flex items-center justify-between py-3">
@@ -26,75 +35,79 @@ const SuggestedUser = ({ name, handle, avatar, userId, isFollowing, isFollowingL
       <FollowButton
         isFollowing={isFollowing}
         isLoading={isFollowingLoading}
-        onFollow={(e) => {
-          e.stopPropagation();
-          onFollow();
+        onFollow={e => {
+          e.stopPropagation()
+          onFollow()
         }}
         variant="default"
       />
     </div>
-  );
-};
+  )
+}
 
-const SuggestedUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [followingStatus, setFollowingStatus] = useState({});
-  const [followingLoading, setFollowingLoading] = useState({});
+const SuggestedUsers = ({ className = '' }) => {
+  const [users, setUsers] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [followingStatus, setFollowingStatus] = useState({})
+  const [followingLoading, setFollowingLoading] = useState({})
 
   useEffect(() => {
     const fetchSuggestedUsers = async () => {
       try {
-        const data = await getSuggestedUsers({ limit: 5 });
+        const data = await getSuggestedUsers({ limit: 5 })
         const formattedUsers = data.users.map(user => ({
           name: user.fullName,
           handle: user.email?.split('@')[0] || 'user',
-          avatar: user.profilePicture || 'https://i.pravatar.cc/150',
-          userId: user._id
-        }));
-        setUsers(formattedUsers);
+          avatar: user.profilePicture || defaultAvatar,
+          userId: user._id,
+        }))
+        setUsers(formattedUsers)
       } catch (error) {
-        toast.error(error.message || 'Failed to fetch suggested users');
+        toast.error(error.message || 'Failed to fetch suggested users')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    fetchSuggestedUsers();
-  }, []);
+    }
+    fetchSuggestedUsers()
+  }, [])
 
-  const handleFollow = async (userId) => {
+  const handleFollow = async userId => {
     try {
-      setFollowingLoading(prev => ({ ...prev, [userId]: true }));
+      setFollowingLoading(prev => ({ ...prev, [userId]: true }))
       if (followingStatus[userId]) {
-        await unfollowUser(userId);
-        setFollowingStatus(prev => ({ ...prev, [userId]: false }));
-        toast.success('User unfollowed');
+        await unfollowUser(userId)
+        setFollowingStatus(prev => ({ ...prev, [userId]: false }))
+        toast.success('User unfollowed')
       } else {
-        await followUser(userId);
-        setFollowingStatus(prev => ({ ...prev, [userId]: true }));
-        toast.success('User followed');
+        await followUser(userId)
+        setFollowingStatus(prev => ({ ...prev, [userId]: true }))
+        toast.success('User followed')
       }
     } catch (error) {
-      toast.error('Failed to update follow status');
-      console.error('Follow error:', error);
+      toast.error('Failed to update follow status')
+      console.error('Follow error:', error)
     } finally {
-      setFollowingLoading(prev => ({ ...prev, [userId]: false }));
+      setFollowingLoading(prev => ({ ...prev, [userId]: false }))
     }
-  };
+  }
 
   if (isLoading) {
     return (
-      <Card className="trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-white/[0.04] shadow-none">
+      <Card
+        className={`trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-[#050505]/90 shadow-[0_24px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl ${className}`}
+      >
         <div className="px-5 pb-2 pt-5">
           <h3 className="text-xl font-semibold tracking-[-0.03em] text-white">Who to follow</h3>
         </div>
         <div className="px-5 py-4 text-sm text-text-dim">Loading...</div>
       </Card>
-    );
+    )
   }
 
   return (
-    <Card className="trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-white/[0.04] shadow-none">
+    <Card
+      className={`trending-sidebar-card mb-4 overflow-hidden border-white/10 bg-[#050505]/90 shadow-[0_24px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl ${className}`}
+    >
       <div className="px-5 pb-2 pt-5">
         <h3 className="text-xl font-semibold tracking-[-0.03em] text-white">Who to follow</h3>
       </div>
@@ -102,7 +115,10 @@ const SuggestedUsers = () => {
       <div className="px-5">
         {users.length > 0 ? (
           users.map((user, index) => (
-            <div key={user.userId || index} className={index !== users.length - 1 ? 'border-b border-white/10' : ''}>
+            <div
+              key={user.userId || index}
+              className={index !== users.length - 1 ? 'border-b border-white/10' : ''}
+            >
               <SuggestedUser
                 {...user}
                 isFollowing={followingStatus[user.userId] || false}
@@ -120,7 +136,7 @@ const SuggestedUsers = () => {
         Show more
       </div>
     </Card>
-  );
-};
+  )
+}
 
-export default SuggestedUsers;
+export default SuggestedUsers

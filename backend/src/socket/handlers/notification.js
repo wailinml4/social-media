@@ -1,4 +1,4 @@
-import { markAsReadService } from "../../services/notificationService.js"
+import { markAsReadService } from '../../services/notificationService.js'
 
 export const handleNotificationEvents = (io, socket) => {
   // Mark notification as read
@@ -10,4 +10,3 @@ export const handleNotificationEvents = (io, socket) => {
     }
   })
 }
-

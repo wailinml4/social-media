@@ -1,40 +1,52 @@
-import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
-import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation';
-import { useAuth } from '../../context/AuthContext';
+import { useState, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Mail, Lock, ArrowRight } from 'lucide-react'
+import { useAuthPageAnimation, useButtonHover } from '../../animations/useAuthPageAnimation'
+import { useAuth } from '../../context/AuthContext'
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login, isLoggingIn, error } = useAuth();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login, isLoggingIn, error } = useAuth()
+  const navigate = useNavigate()
 
-  const containerRef = useRef(null);
-  const buttonRef = useRef(null);
+  const containerRef = useRef(null)
+  const buttonRef = useRef(null)
 
-  useAuthPageAnimation(containerRef);
+  useAuthPageAnimation(containerRef)
 
-  const { handleMouseEnter: handleButtonHover, handleMouseLeave: handleButtonLeave } = useButtonHover();
+  const { handleMouseEnter: handleButtonHover, handleMouseLeave: handleButtonLeave } =
+    useButtonHover()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async e => {
+    e.preventDefault()
     try {
-      await login(email, password);
-      navigate('/');
-    } catch (error) {
+      await login(email, password)
+      navigate('/')
+    } catch {
       // Error is handled by context and displayed via error state
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10 w-full" ref={containerRef}>
-      
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 relative z-10 w-full"
+      ref={containerRef}
+    >
       {/* Brand / Logo Area */}
       <div className="auth-stagger mb-8 text-center">
         <div className="w-12 h-12 bg-primary/20 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-[0_0_20px_rgba(10,132,255,0.2)]">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
       </div>
@@ -55,7 +67,7 @@ const Login = () => {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-white placeholder-white/30 outline-none focus:border-primary/50 focus:bg-primary/[0.02] transition-all duration-300"
               placeholder="Email"
               required
@@ -70,7 +82,7 @@ const Login = () => {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-white placeholder-white/30 outline-none focus:border-primary/50 focus:bg-primary/[0.02] transition-all duration-300"
               placeholder="Password"
               required
@@ -78,7 +90,10 @@ const Login = () => {
           </div>
 
           <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-xs text-primary hover:text-primary/80 transition-colors">
+            <Link
+              to="/forgot-password"
+              className="text-xs text-primary hover:text-primary/80 transition-colors"
+            >
               Forgot password?
             </Link>
           </div>
@@ -101,24 +116,23 @@ const Login = () => {
             )}
           </button>
 
-          {error && (
-            <div className="mt-4 text-center text-sm text-red-400">
-              {error}
-            </div>
-          )}
+          {error && <div className="mt-4 text-center text-sm text-red-400">{error}</div>}
         </form>
 
         <div className="auth-stagger mt-8 text-center">
           <p className="text-sm text-text-dim">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-white font-medium hover:text-primary transition-colors">
+            <Link
+              to="/signup"
+              className="text-white font-medium hover:text-primary transition-colors"
+            >
               Sign up
             </Link>
           </p>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

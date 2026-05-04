@@ -1,93 +1,88 @@
-import React, { createContext, useContext, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState } from 'react'
 
-const ModalContext = createContext();
+const ModalContext = createContext()
 
 export const ModalProvider = ({ children }) => {
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
-  const [followersModalType, setFollowersModalType] = useState('followers');
-  const [followersModalUserId, setFollowersModalUserId] = useState(null);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [sharedPost, setSharedPost] = useState(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmModalData, setConfirmModalData] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false)
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false)
+  const [isCreateStoryOpen, setIsCreateStoryOpen] = useState(false)
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false)
+  const [followersModalType, setFollowersModalType] = useState('followers')
+  const [followersModalUserId, setFollowersModalUserId] = useState(null)
+  // search modal removed — no longer used
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [sharedPost, setSharedPost] = useState(null)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [confirmModalData, setConfirmModalData] = useState(null)
 
-  const openPostModal = (post) => {
-    setSelectedPost(post);
-    setIsPostModalOpen(true);
-  };
+  const openPostModal = post => {
+    setSelectedPost(post)
+    setIsPostModalOpen(true)
+  }
 
-  const openShareModal = (post) => {
-    setSharedPost(post);
-    setIsShareModalOpen(true);
-  };
+  const openShareModal = post => {
+    setSharedPost(post)
+    setIsShareModalOpen(true)
+  }
 
   const closeShareModal = () => {
-    setIsShareModalOpen(false);
-    setTimeout(() => setSharedPost(null), 300);
-  };
+    setIsShareModalOpen(false)
+    setTimeout(() => setSharedPost(null), 300)
+  }
 
   const closePostModal = () => {
-    setIsPostModalOpen(false);
-    setTimeout(() => setSelectedPost(null), 300); // Wait for animation
-  };
+    setIsPostModalOpen(false)
+    setTimeout(() => setSelectedPost(null), 300) // Wait for animation
+  }
 
   const openCreatePostModal = () => {
-    setIsCreatePostOpen(true);
-  };
+    setIsCreatePostOpen(true)
+  }
 
   const closeCreatePostModal = () => {
-    setIsCreatePostOpen(false);
-  };
+    setIsCreatePostOpen(false)
+  }
 
   const openCreateStoryModal = () => {
-    setIsCreateStoryOpen(true);
-  };
+    setIsCreateStoryOpen(true)
+  }
 
   const closeCreateStoryModal = () => {
-    setIsCreateStoryOpen(false);
-  };
+    setIsCreateStoryOpen(false)
+  }
 
   const openEditProfileModal = () => {
-    setIsEditProfileOpen(true);
-  };
+    setIsEditProfileOpen(true)
+  }
 
   const closeEditProfileModal = () => {
-    setIsEditProfileOpen(false);
-  };
+    setIsEditProfileOpen(false)
+  }
 
   const openFollowersModal = (type, userId) => {
-    setFollowersModalType(type);
-    setFollowersModalUserId(userId);
-    setIsFollowersModalOpen(true);
-  };
+    setFollowersModalType(type)
+    setFollowersModalUserId(userId)
+    setIsFollowersModalOpen(true)
+  }
 
   const closeFollowersModal = () => {
-    setIsFollowersModalOpen(false);
-  };
+    setIsFollowersModalOpen(false)
+  }
 
-  const openConfirmModal = (data) => {
-    setConfirmModalData(data);
-    setIsConfirmModalOpen(true);
-  };
+  const openConfirmModal = data => {
+    setConfirmModalData(data)
+    setIsConfirmModalOpen(true)
+  }
 
   const closeConfirmModal = () => {
-    setIsConfirmModalOpen(false);
-    setTimeout(() => setConfirmModalData(null), 300);
-  };
+    setIsConfirmModalOpen(false)
+    setTimeout(() => setConfirmModalData(null), 300)
+  }
 
-  const openSearchModal = () => {
-    setIsSearchModalOpen(true);
-  };
-
-  const closeSearchModal = () => {
-    setIsSearchModalOpen(false);
-  };
+  // search modal removed — functions deleted
 
   return (
     <ModalContext.Provider
@@ -99,7 +94,7 @@ export const ModalProvider = ({ children }) => {
         isFollowersModalOpen,
         followersModalType,
         followersModalUserId,
-        isSearchModalOpen,
+
         isShareModalOpen,
         sharedPost,
         openPostModal,
@@ -113,8 +108,7 @@ export const ModalProvider = ({ children }) => {
         closeEditProfileModal,
         openFollowersModal,
         closeFollowersModal,
-        openSearchModal,
-        closeSearchModal,
+
         openShareModal,
         closeShareModal,
         isConfirmModalOpen,
@@ -125,7 +119,7 @@ export const ModalProvider = ({ children }) => {
     >
       {children}
     </ModalContext.Provider>
-  );
-};
+  )
+}
 
-export const useModal = () => useContext(ModalContext);
+export const useModal = () => useContext(ModalContext)

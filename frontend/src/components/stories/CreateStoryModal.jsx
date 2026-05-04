@@ -1,116 +1,114 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import React, { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 
-import { X, Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react'
 
-import { useModal } from '../../context/ModalContext';
-import { useAuth } from '../../context/AuthContext';
-import { uploadImage } from '../../services/uploadService';
-import { createStory } from '../../services/storyService';
+import { useModal } from '../../context/ModalContext'
+import { uploadImage } from '../../services/uploadService'
+import { createStory } from '../../services/storyService'
 
 const CreateStoryModal = () => {
-  const { isCreateStoryOpen, closeCreateStoryModal } = useModal();
-  const { user } = useAuth();
-  const [mediaItems, setMediaItems] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef(null);
+  const { isCreateStoryOpen, closeCreateStoryModal } = useModal()
+  const [mediaItems, setMediaItems] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
-  const hasMedia = mediaItems.length > 0;
+  const hasMedia = mediaItems.length > 0
 
   useEffect(() => {
-    if (!isCreateStoryOpen) return undefined;
+    if (!isCreateStoryOpen) return undefined
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        closeCreateStoryModal();
+        closeCreateStoryModal()
       }
-    };
+    }
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isCreateStoryOpen, closeCreateStoryModal]);
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isCreateStoryOpen, closeCreateStoryModal])
 
   useEffect(() => {
     return () => {
-      mediaItems.forEach((item) => URL.revokeObjectURL(item.preview));
-    };
-  }, [mediaItems]);
+      mediaItems.forEach(item => URL.revokeObjectURL(item.preview))
+    }
+  }, [mediaItems])
 
   const resetComposer = () => {
-    mediaItems.forEach((item) => URL.revokeObjectURL(item.preview));
-    setMediaItems([]);
-  };
+    mediaItems.forEach(item => URL.revokeObjectURL(item.preview))
+    setMediaItems([])
+  }
 
-  const addFiles = (files) => {
+  const addFiles = files => {
     const nextItems = Array.from(files)
-      .filter((file) => file.type.startsWith('image/') || file.type.startsWith('video/'))
-      .map((file) => ({
+      .filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'))
+      .map(file => ({
         id: `${file.name}-${file.size}-${file.lastModified}`,
         file,
         type: file.type.startsWith('video/') ? 'video' : 'image',
         preview: URL.createObjectURL(file),
         caption: '',
-      }));
+      }))
 
-    if (!nextItems.length) return;
-    setMediaItems((current) => [...current, ...nextItems]);
-  };
+    if (!nextItems.length) return
+    setMediaItems(current => [...current, ...nextItems])
+  }
 
-  const handleFileChange = (event) => {
-    addFiles(event.target.files || []);
-    event.target.value = '';
-  };
+  const handleFileChange = event => {
+    addFiles(event.target.files || [])
+    event.target.value = ''
+  }
 
-  const removeMediaItem = (id) => {
-    setMediaItems((current) => {
-      const item = current.find((entry) => entry.id === id);
-      if (item) URL.revokeObjectURL(item.preview);
-      return current.filter((entry) => entry.id !== id);
-    });
-  };
+  const removeMediaItem = id => {
+    setMediaItems(current => {
+      const item = current.find(entry => entry.id === id)
+      if (item) URL.revokeObjectURL(item.preview)
+      return current.filter(entry => entry.id !== id)
+    })
+  }
 
   const updateCaption = (id, caption) => {
-    setMediaItems((current) => current.map((item) => item.id === id ? { ...item, caption } : item));
-  };
+    setMediaItems(current => current.map(item => (item.id === id ? { ...item, caption } : item)))
+  }
 
   const handleSubmit = async () => {
     if (!hasMedia) {
-      toast.error('Add at least one image or video to create a story');
-      return;
+      toast.error('Add at least one image or video to create a story')
+      return
     }
 
     try {
-      setIsUploading(true);
-      const slides = [];
+      setIsUploading(true)
+      const slides = []
 
       for (const item of mediaItems) {
-        const mediaUrl = await uploadImage(item.file);
+        const mediaUrl = await uploadImage(item.file)
         slides.push({
           mediaUrl,
           type: item.type,
           caption: item.caption,
           duration: 6000,
           timestamp: new Date().toISOString(),
-        });
+        })
       }
 
-      await createStory(slides);
-      toast.success('Story uploaded successfully');
-      resetComposer();
-      closeCreateStoryModal();
+      await createStory(slides)
+      toast.success('Story uploaded successfully')
+      resetComposer()
+      closeCreateStoryModal()
     } catch (error) {
-      toast.error(error.message || 'Failed to upload story');
+      toast.error(error.message || 'Failed to upload story')
     } finally {
-      setIsUploading(false);
+      setIsUploading(false)
     }
-  };
+  }
 
-  if (!isCreateStoryOpen) return null;
+  if (!isCreateStoryOpen) return null
 
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6">
@@ -139,7 +137,9 @@ const CreateStoryModal = () => {
           <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
             <div className="rounded-3xl border border-white/10 bg-neutral-950 p-4 text-sm text-white/70">
               <p className="mb-3 text-white">Upload story media</p>
-              <p className="mb-4">Stories expire after 24 hours and are visible to people you follow.</p>
+              <p className="mb-4">
+                Stories expire after 24 hours and are visible to people you follow.
+              </p>
               <button
                 type="button"
                 className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
@@ -157,37 +157,20 @@ const CreateStoryModal = () => {
                 onChange={handleFileChange}
               />
             </div>
-
-            <div className="rounded-3xl border border-white/10 bg-neutral-950 p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 overflow-hidden rounded-full bg-white/5">
-                  <img
-                    src={user?.profilePicture || 'https://i.pravatar.cc/150'}
-                    alt={user?.fullName || 'You'}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">{user?.fullName || 'You'}</p>
-                  <p className="text-xs text-white/50">Stories posted to your followers</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className="grid gap-4">
             {mediaItems.length ? (
-              mediaItems.map((item) => (
-                <div key={item.id} className="rounded-3xl border border-white/10 bg-neutral-950 p-4">
+              mediaItems.map(item => (
+                <div
+                  key={item.id}
+                  className="rounded-3xl border border-white/10 bg-neutral-950 p-4"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="mb-3 overflow-hidden rounded-2xl bg-black">
                         {item.type === 'video' ? (
-                          <video
-                            src={item.preview}
-                            controls
-                            className="h-48 w-full object-cover"
-                          />
+                          <video src={item.preview} controls className="h-48 w-full object-cover" />
                         ) : (
                           <img
                             src={item.preview}
@@ -203,7 +186,7 @@ const CreateStoryModal = () => {
                       <textarea
                         rows={2}
                         value={item.caption}
-                        onChange={(event) => updateCaption(item.id, event.target.value)}
+                        onChange={event => updateCaption(item.id, event.target.value)}
                         className="w-full resize-none rounded-2xl border border-white/10 bg-[#0f0f0f] px-4 py-3 text-sm text-white outline-none transition focus:border-primary"
                         placeholder="Add a caption (optional)"
                       />
@@ -247,7 +230,7 @@ const CreateStoryModal = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CreateStoryModal;
+export default CreateStoryModal

@@ -1,18 +1,18 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Avatar from '../ui/Avatar';
-import FollowButton from '../ui/FollowButton';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import Avatar from '../ui/Avatar'
+import FollowButton from '../ui/FollowButton'
 
 const UserList = ({ users, currentUser, followingStatus, onFollow, onUserSelect }) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const handleUserClick = (userId) => {
+  const handleUserClick = userId => {
     if (onUserSelect) {
-      onUserSelect(userId);
-      return;
+      onUserSelect(userId)
+      return
     }
-    navigate(`/profile/${userId}`);
-  };
+    navigate(`/profile/${userId}`)
+  }
 
   return (
     <div className="space-y-2">
@@ -42,7 +42,7 @@ const UserList = ({ users, currentUser, followingStatus, onFollow, onUserSelect 
           </button>
 
           {currentUser?._id !== user._id && (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div onClick={e => e.stopPropagation()}>
               <FollowButton
                 isFollowing={followingStatus[user._id]}
                 isLoading={false}
@@ -53,7 +53,7 @@ const UserList = ({ users, currentUser, followingStatus, onFollow, onUserSelect 
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default UserList;
+export default UserList

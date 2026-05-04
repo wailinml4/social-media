@@ -1,5 +1,5 @@
-import { createMessageService } from "../../services/messageService.js"
-import { markMessageAsReadService } from "../../services/messageService.js"
+import { createMessageService } from '../../services/messageService.js'
+import { markMessageAsReadService } from '../../services/messageService.js'
 
 export const handleChatEvents = (io, socket) => {
   // Join a conversation room
@@ -17,10 +17,43 @@ export const handleChatEvents = (io, socket) => {
   // Send a message
   socket.on('send_message', async ({ conversationId, content, attachments, sharedPost }) => {
     try {
-      const result = await createMessageService(socket.userId, conversationId, content, attachments, sharedPost)
+      const result = await createMessageService(
+        socket.userId,
+        conversationId,
+        content,
+        attachments,
+        sharedPost,
+      )
 
       // Emit to all users in the conversation room
       io.to(`chat:${conversationId}`).emit('message_received', result)
+
+      // Also emit a conversation update so conversation lists update in real-time
+      try {
+        io.to(`chat:${conversationId}`).emit('conversation_updated', result.conversation)
+
+        // Emit to all participants (use unreadCount keys as participant ids) and sender
+        const participantIds =
+          result.conversation && result.conversation.unreadCount
+            ? Object.keys(result.conversation.unreadCount)
+            : []
+
+        participantIds.forEach(participantId => {
+          io.to(`user:${participantId}`).emit('conversation_updated', result.conversation)
+        })
+
+        // Ensure sender also receives the update on their user room
+        io.to(`user:${socket.userId}`).emit('conversation_updated', result.conversation)
+      } catch (err) {
+        console.error('Error emitting conversation update:', err)
+      }
+
+      // Emit notification events to recipients of the message
+      if (result.notifications && Array.isArray(result.notifications)) {
+        result.notifications.forEach(({ recipientId, notification }) => {
+          io.to(`user:${recipientId}`).emit('notification', notification)
+        })
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       socket.emit('error', { message: 'Failed to send message' })
@@ -63,7 +96,7 @@ export const handleChatEvents = (io, socket) => {
   // Update message
   socket.on('update_message', async ({ messageId, content }) => {
     try {
-      const { updateMessageService } = await import("../../services/messageService.js")
+      const { updateMessageService } = await import('../../services/messageService.js')
       const message = await updateMessageService(messageId, socket.userId, { content })
 
       // Emit to all users in the conversation room
@@ -77,7 +110,7 @@ export const handleChatEvents = (io, socket) => {
   // Delete message
   socket.on('delete_message', async ({ messageId }) => {
     try {
-      const { deleteMessageService } = await import("../../services/messageService.js")
+      const { deleteMessageService } = await import('../../services/messageService.js')
       const { conversationId } = await deleteMessageService(messageId, socket.userId)
 
       // Emit to all users in the conversation room

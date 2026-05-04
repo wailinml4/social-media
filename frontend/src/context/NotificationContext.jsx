@@ -1,8 +1,14 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { getAllNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } from "../services/notificationService.js"
-import { useAuth } from "./AuthContext"
-import { useSocket } from "./SocketContext"
-import toast from "react-hot-toast"
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import {
+  getAllNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+} from '../services/notificationService.js'
+import { useAuth } from './AuthContext'
+import { useSocket } from './SocketContext'
+import toast from 'react-hot-toast'
 
 export const NotificationContext = createContext()
 
@@ -33,11 +39,17 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [])
 
-  const markAsRead = useCallback(async (notificationId) => {
+  const markAsRead = useCallback(async notificationId => {
     try {
       setIsMarkingAsRead(true)
       await markNotificationAsRead(notificationId)
-      setNotifications(prev => prev.map(notif => (notif._id === notificationId || notif.id === notificationId) ? { ...notif, isRead: true } : notif))
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif._id === notificationId || notif.id === notificationId
+            ? { ...notif, isRead: true }
+            : notif,
+        ),
+      )
       setUnreadCount(prev => Math.max(0, prev - 1))
       setError(null)
     } catch (error) {
@@ -63,31 +75,50 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [])
 
-  const deleteNotificationItem = useCallback(async (notificationId) => {
-    try {
-      setIsDeleting(true)
-      await deleteNotification(notificationId)
-      setNotifications(prev => prev.filter(notif => notif._id !== notificationId && notif.id !== notificationId))
-      const deletedNotif = notifications.find(notif => notif._id === notificationId || notif.id === notificationId)
-      if (deletedNotif && !deletedNotif.isRead) {
-        setUnreadCount(prev => Math.max(0, prev - 1))
+  const deleteNotificationItem = useCallback(
+    async notificationId => {
+      try {
+        setIsDeleting(true)
+        await deleteNotification(notificationId)
+        setNotifications(prev =>
+          prev.filter(notif => notif._id !== notificationId && notif.id !== notificationId),
+        )
+        const deletedNotif = notifications.find(
+          notif => notif._id === notificationId || notif.id === notificationId,
+        )
+        if (deletedNotif && !deletedNotif.isRead) {
+          setUnreadCount(prev => Math.max(0, prev - 1))
+        }
+        setError(null)
+      } catch (error) {
+        setError(error.message)
+        throw error
+      } finally {
+        setIsDeleting(false)
       }
-      setError(null)
-    } catch (error) {
-      setError(error.message)
-      throw error
-    } finally {
-      setIsDeleting(false)
-    }
-  }, [notifications])
+    },
+    [notifications],
+  )
 
   // Listen for real-time notifications via socket
   useEffect(() => {
     if (isConnected) {
-      onNotification((notification) => {
+      onNotification(notification => {
         setNotifications(prev => [notification, ...prev])
         setUnreadCount(prev => prev + 1)
-        toast(`${notification.sender.name} ${notification.type === 'like' ? 'liked your post' : notification.type === 'comment' ? 'commented on your post' : notification.type === 'follow' ? 'followed you' : 'mentioned you'}`)
+        const notificationText =
+          notification.type === 'like'
+            ? 'liked your post'
+            : notification.type === 'comment'
+              ? 'commented on your post'
+              : notification.type === 'follow'
+                ? 'followed you'
+                : notification.type === 'message'
+                  ? 'sent you a message'
+                  : notification.type === 'reply'
+                    ? 'replied to your comment'
+                    : 'mentioned you'
+        toast(`${notification.sender.name} ${notificationText}`)
       })
 
       return () => {
@@ -99,24 +130,26 @@ export const NotificationProvider = ({ children }) => {
   // Initial fetch when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      fetchNotifications({ page: 1, limit: 20 })
+      setTimeout(() => fetchNotifications({ page: 1, limit: 20 }), 0)
     }
   }, [isAuthenticated, fetchNotifications])
 
   return (
-    <NotificationContext.Provider value={{
-      notifications,
-      unreadCount,
-      isLoadingNotifications,
-      isMarkingAsRead,
-      isMarkingAllAsRead,
-      isDeleting,
-      error,
-      fetchNotifications,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification: deleteNotificationItem,
-    }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        isLoadingNotifications,
+        isMarkingAsRead,
+        isMarkingAllAsRead,
+        isDeleting,
+        error,
+        fetchNotifications,
+        markAsRead,
+        markAllAsRead,
+        deleteNotification: deleteNotificationItem,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   )

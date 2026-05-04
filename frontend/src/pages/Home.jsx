@@ -1,57 +1,70 @@
-import React, { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import React, { useEffect, useRef, useState, useCallback } from 'react'
+import toast from 'react-hot-toast'
 
-import PostCard from '../components/post/card/PostCard';
-import PostSkeleton from '../components/post/card/PostSkeleton';
-import StoriesBar from '../components/stories/StoriesBar';
-import Tabs from '../components/ui/Tabs';
-import TrendingSidebar from '../components/layout/TrendingSidebar';
+import PostCard from '../components/post/card/PostCard'
+import PostSkeleton from '../components/post/card/PostSkeleton'
+import StoriesBar from '../components/stories/StoriesBar'
+import Tabs from '../components/ui/Tabs'
 
-import { usePosts } from '../context/PostContext';
-import { useStaggeredFadeIn } from '../animations/useStaggeredFadeIn';
-import { useAuth } from '../context/AuthContext';
+import { usePosts } from '../context/PostContext'
+import { useStaggeredFadeIn } from '../animations/useStaggeredFadeIn'
 
-const FEED_MAX_WIDTH = 600;
+const FEED_MAX_WIDTH = 600
 
 const Home = () => {
-  const { posts, isLoadingPosts, error, fetchAllPosts, fetchFollowingPosts, followingPosts, isLoadingFollowingPosts, fetchFriendsPosts, friendsPosts, isLoadingFriendsPosts } = usePosts();
-  const [activeTab, setActiveTab] = useState('for_you');
-  const [currentPage, setCurrentPage] = useState(1);
-  const feedRef = useRef(null);
-  const loaderRef = useRef(null);
+  const {
+    error,
+    fetchFollowingPosts,
+    followingPosts,
+    isLoadingFollowingPosts,
+    fetchFriendsPosts,
+    friendsPosts,
+    isLoadingFriendsPosts,
+  } = usePosts()
+  const [activeTab, setActiveTab] = useState('following')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const feedRef = useRef(null)
+  const loaderRef = useRef(null)
 
   const homeTabs = [
-    { id: 'for_you', label: 'For you' },
-    { id: 'friends', label: 'Friends' },
     { id: 'following', label: 'Following' },
-  ];
+    { id: 'friends', label: 'Friends' },
+  ]
 
-  const onTabChange = (tabId) => {
-    setActiveTab(tabId);
-    setCurrentPage(1);
-  };
+  const onTabChange = tabId => {
+    setActiveTab(tabId)
+    setCurrentPage(1)
+  }
 
   // Initial Load
   useEffect(() => {
     const fetchInitialPosts = async () => {
       try {
+        let res = null
         if (activeTab === 'following') {
-          await fetchFollowingPosts({ page: 1, limit: 3 });
-        } else if (activeTab === 'friends') {
-          await fetchFriendsPosts({ page: 1, limit: 3 });
+          res = await fetchFollowingPosts({ page: 1, limit: 3 })
         } else {
-          await fetchAllPosts({ page: 1, limit: 3, filter: activeTab });
+          res = await fetchFriendsPosts({ page: 1, limit: 3 })
+        }
+
+        // Determine whether there are more pages to load
+        if (!res || !res.pagination) {
+          setHasMore((res && Array.isArray(res.posts) && res.posts.length >= 3) || false)
+        } else {
+          setHasMore(res.pagination.pages > 1)
         }
       } catch (error) {
-        toast.error(error.message || 'Failed to load posts. Please try again.');
+        toast.error(error.message || 'Failed to load posts. Please try again.')
       }
-    };
-    fetchInitialPosts();
-  }, [activeTab, fetchAllPosts, fetchFollowingPosts, fetchFriendsPosts]);
+    }
+    fetchInitialPosts()
+  }, [activeTab, fetchFollowingPosts, fetchFriendsPosts])
 
   // GSAP Animation for newly loaded posts
-  const currentPosts = activeTab === 'following' ? followingPosts : activeTab === 'friends' ? friendsPosts : posts;
-  const currentIsLoading = activeTab === 'following' ? isLoadingFollowingPosts : activeTab === 'friends' ? isLoadingFriendsPosts : isLoadingPosts;
+  const currentPosts = activeTab === 'following' ? followingPosts : friendsPosts
+  const currentIsLoading =
+    activeTab === 'following' ? isLoadingFollowingPosts : isLoadingFriendsPosts
 
   useStaggeredFadeIn(!currentIsLoading && currentPosts.length > 0, '.post-card-animate-in', {
     y: 30,
@@ -60,114 +73,134 @@ const Home = () => {
     stagger: 0.1,
     ease: 'power2.out',
     clearProps: 'all',
-  });
+  })
+
+  // Infinite Scroll helper: load more posts
+  const loadMorePosts = useCallback(async () => {
+    try {
+      const nextPage = currentPage + 1
+      let res = null
+      if (activeTab === 'following') {
+        res = await fetchFollowingPosts({ page: nextPage, limit: 2 })
+      } else {
+        res = await fetchFriendsPosts({ page: nextPage, limit: 2 })
+      }
+
+      setCurrentPage(nextPage)
+
+      // Stop loading if API indicates there are no more pages or fewer items returned than requested
+      if (!res || !res.pagination) {
+        if (!res || !Array.isArray(res.posts) || res.posts.length < 2) setHasMore(false)
+      } else {
+        if (nextPage >= res.pagination.pages || (Array.isArray(res.posts) && res.posts.length < 2))
+          setHasMore(false)
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to load more posts. Please try again.')
+    }
+  }, [currentPage, activeTab, fetchFollowingPosts, fetchFriendsPosts])
 
   // Infinite Scroll Logic
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      const target = entries[0];
-      if (target.isIntersecting && !currentIsLoading && currentPosts.length > 0) {
-        loadMorePosts();
-      }
-    }, { threshold: 0.5 });
+    const observer = new IntersectionObserver(
+      entries => {
+        const target = entries[0]
+        if (target.isIntersecting && !currentIsLoading && currentPosts.length > 0 && hasMore) {
+          loadMorePosts()
+        }
+      },
+      { threshold: 0.5 },
+    )
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    const node = loaderRef.current
+    if (node) {
+      observer.observe(node)
     }
 
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (node) {
+        observer.unobserve(node)
       }
-    };
-  }, [currentIsLoading, currentPosts, activeTab, fetchAllPosts, fetchFollowingPosts, fetchFriendsPosts]);
-
-  const loadMorePosts = async () => {
-    try {
-      const nextPage = currentPage + 1;
-      if (activeTab === 'following') {
-        await fetchFollowingPosts({ page: nextPage, limit: 2 });
-      } else if (activeTab === 'friends') {
-        await fetchFriendsPosts({ page: nextPage, limit: 2 });
-      } else {
-        await fetchAllPosts({ page: nextPage, limit: 2, filter: activeTab });
-      }
-      setCurrentPage(nextPage);
-    } catch (error) {
-      toast.error(error.message || 'Failed to load more posts. Please try again.');
     }
-  };
+  }, [
+    currentIsLoading,
+    currentPosts,
+    activeTab,
+    fetchFollowingPosts,
+    fetchFriendsPosts,
+    hasMore,
+    loadMorePosts,
+  ])
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip pb-20 sm:pb-0 bg-bg-dark">
-      <div className="home-feed-shell pointer-events-none relative w-full">
-        <div className="mx-auto flex min-h-screen w-full justify-center px-4 sm:px-6 lg:px-10">
-          {/* Main Feed Column */}
-          <div
-            className="pointer-events-auto relative flex min-h-screen w-full flex-col overflow-hidden border-r border-white/10 bg-bg-dark"
-            style={{ maxWidth: `${FEED_MAX_WIDTH}px` }}
-          >
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-20 border-b border-white/10 bg-black/70 backdrop-blur-xl">
-              <StoriesBar />
+    <div className="relative min-h-screen w-full overflow-x-clip pb-20 sm:pb-0 bg-bg-dark flex justify-center">
+      {/* Main Feed Column */}
+      <div
+        className="relative flex min-h-screen w-full flex-col bg-bg-dark"
+        style={{ maxWidth: `${FEED_MAX_WIDTH}px` }}
+      >
+        {/* Header (not sticky) */}
+        <div className="bg-black/70 backdrop-blur-xl pt-6 pb-4 space-y-4">
+          <Tabs tabs={homeTabs} activeTab={activeTab} onTabChange={onTabChange} />
 
-              <Tabs
-                tabs={homeTabs}
-                activeTab={activeTab}
-                onTabChange={onTabChange}
-              />
+          <StoriesBar activeTab={activeTab} />
+        </div>
+
+        {/* Feed List */}
+        <div ref={feedRef} className="flex-1 space-y-6">
+          {error ? (
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Failed to load posts</h3>
+              <p className="text-gray-500 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+              >
+                Try again
+              </button>
             </div>
-
-            {/* Feed List */}
-            <div ref={feedRef} className="flex-1">
-              {error ? (
-                <div className="p-8 text-center">
-                  <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">⚠️</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Failed to load posts</h3>
-                  <p className="text-gray-500 mb-4">{error}</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
-                  >
-                    Try again
-                  </button>
+          ) : (
+            <>
+              {currentPosts.map(post => (
+                <div key={post.id || post._id} className="post-card-animate-in">
+                  <PostCard post={post} />
                 </div>
-              ) : (
-                <>
-                  {currentPosts.map((post) => (
-                    <div key={post.id || post._id} className="post-card-animate-in">
-                      <PostCard post={post} />
-                    </div>
-                  ))}
+              ))}
 
-                  {currentIsLoading && (
-                    <div className="flex flex-col">
-                      <PostSkeleton />
-                      <PostSkeleton />
-                    </div>
-                  )}
-
-                  {/* Invisible target for intersection observer */}
-                  <div ref={loaderRef} className="h-20 w-full" />
-
-                  {!currentIsLoading && currentPosts.length > 0 && (
-                    <div className="border-b border-white/10 p-8 text-center text-sm text-white/40">
-                      You&apos;re all caught up!
-                    </div>
-                  )}
-                </>
+              {currentIsLoading && (
+                <div className="flex flex-col">
+                  <PostSkeleton />
+                  <PostSkeleton />
+                </div>
               )}
-            </div>
-          </div>
+
+              {/* Invisible target for intersection observer */}
+              <div ref={loaderRef} className="h-20 w-full" />
+
+              {!currentIsLoading && currentPosts.length === 0 && (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📭</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">No posts yet</h3>
+                  <p className="text-gray-500 mb-4">There are no posts in this feed right now.</p>
+                </div>
+              )}
+
+              {!currentIsLoading && currentPosts.length > 0 && (
+                <div className="border-b border-white/10 p-8 text-center text-sm text-white/40">
+                  You&apos;re all caught up!
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
-
-      {/* Right Sidebar Component */}
-      <TrendingSidebar />
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

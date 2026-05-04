@@ -1,106 +1,113 @@
-import { followUserService, unfollowUserService, getFollowersService, getFolloweesService, checkFollowStatusService, getFriendsService } from "../services/followService.js"
+import {
+  followUserService,
+  unfollowUserService,
+  getFollowersService,
+  getFolloweesService,
+  checkFollowStatusService,
+  getFriendsService,
+} from '../services/followService.js'
 
 export const followUser = async (req, res, next) => {
-    try {
-        const currentUserId = req.user.userId
-        const { userId: targetUserId } = req.params
+  try {
+    const currentUserId = req.user.userId
+    const { userId: targetUserId } = req.params
 
-        const { currentUser, targetUser } = await followUserService(currentUserId, targetUserId)
+    const { currentUser, targetUser } = await followUserService(currentUserId, targetUserId)
 
-        return res.status(200).json({
-            success: true,
-            message: "User followed successfully",
-            data: {
-                followingCount: currentUser.followingCount,
-                followerCount: targetUser.followerCount
-            }
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'User followed successfully',
+      data: {
+        followingCount: currentUser.followingCount,
+        followerCount: targetUser.followerCount,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const unfollowUser = async (req, res, next) => {
-    try {
-        const currentUserId = req.user.userId
-        const { userId: targetUserId } = req.params
+  try {
+    const currentUserId = req.user.userId
+    const { userId: targetUserId } = req.params
 
-        const { currentUser, targetUser } = await unfollowUserService(currentUserId, targetUserId)
+    const { currentUser, targetUser } = await unfollowUserService(currentUserId, targetUserId)
 
-        return res.status(200).json({
-            success: true,
-            message: "User unfollowed successfully",
-            data: {
-                followingCount: currentUser.followingCount,
-                followerCount: targetUser.followerCount
-            }
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'User unfollowed successfully',
+      data: {
+        followingCount: currentUser.followingCount,
+        followerCount: targetUser.followerCount,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const getFollowers = async (req, res, next) => {
-    try {
-        const { userId } = req.params
-        const { page = 1, limit = 10 } = req.query
-        const result = await getFollowersService(userId, parseInt(page), parseInt(limit))
+  try {
+    const { userId } = req.params
+    const { page = 1, limit = 10 } = req.query
+    const result = await getFollowersService(userId, parseInt(page), parseInt(limit))
 
-        return res.status(200).json({
-            success: true,
-            message: "Followers retrieved successfully",
-            data: result,
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'Followers retrieved successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const getFollowees = async (req, res, next) => {
-    try {
-        const { userId } = req.params
-        const { page = 1, limit = 10 } = req.query
-        const result = await getFolloweesService(userId, parseInt(page), parseInt(limit))
+  try {
+    const { userId } = req.params
+    const { page = 1, limit = 10 } = req.query
+    const result = await getFolloweesService(userId, parseInt(page), parseInt(limit))
 
-        return res.status(200).json({
-            success: true,
-            message: "Followees retrieved successfully",
-            data: result,
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'Followees retrieved successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const checkFollowStatus = async (req, res, next) => {
-    try {
-        const currentUserId = req.user.userId
-        const { userId: targetUserId } = req.params
+  try {
+    const currentUserId = req.user.userId
+    const { userId: targetUserId } = req.params
 
-        const isFollowing = await checkFollowStatusService(currentUserId, targetUserId)
+    const isFollowing = await checkFollowStatusService(currentUserId, targetUserId)
 
-        return res.status(200).json({
-            success: true,
-            message: "Follow status retrieved successfully",
-            data: { isFollowing },
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'Follow status retrieved successfully',
+      data: { isFollowing },
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const getFriends = async (req, res, next) => {
-    try {
-        const { userId } = req.params
-        const { page = 1, limit = 10 } = req.query
-        const result = await getFriendsService(userId, parseInt(page), parseInt(limit))
+  try {
+    const { userId } = req.params
+    const { page = 1, limit = 10 } = req.query
+    const result = await getFriendsService(userId, parseInt(page), parseInt(limit))
 
-        return res.status(200).json({
-            success: true,
-            message: "Friends retrieved successfully",
-            data: result,
-        })
-    } catch (error) {
-        next(error)
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'Friends retrieved successfully',
+      data: result,
+    })
+  } catch (error) {
+    next(error)
+  }
 }

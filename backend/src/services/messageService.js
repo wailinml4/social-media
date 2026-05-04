@@ -1,9 +1,11 @@
-import { Message } from "../models/Message.js"
-import { Conversation } from "../models/Conversation.js"
-import User from "../models/User.js"
-import mongoose from "mongoose"
+import Message from '../models/Message.js'
+import Conversation from '../models/Conversation.js'
+import Post from '../models/Post.js'
+import User from '../models/User.js'
+import { createNotificationService } from './notificationService.js'
+import mongoose from 'mongoose'
 
-const formatTime = (date) => {
+const formatTime = date => {
   if (!date) return ''
   const now = new Date()
   const diff = now - date
@@ -19,7 +21,13 @@ const formatTime = (date) => {
   return date.toLocaleDateString()
 }
 
-export const createMessageService = async (senderId, conversationId, content, attachments = [], sharedPost = null) => {
+export const createMessageService = async (
+  senderId,
+  conversationId,
+  content,
+  attachments = [],
+  sharedPost = null,
+) => {
   const conversation = await Conversation.findById(conversationId)
 
   if (!conversation) {
@@ -43,19 +51,54 @@ export const createMessageService = async (senderId, conversationId, content, at
     deliveredAt: new Date(),
   })
 
+  if (sharedPost && (sharedPost._id || sharedPost.id || sharedPost.postId)) {
+    const postId = sharedPost._id || sharedPost.id || sharedPost.postId
+    await Post.findByIdAndUpdate(postId, { $inc: { shareCount: 1 } })
+  }
+
   // Update conversation's lastMessage
   conversation.lastMessage = message._id
   conversation.updatedAt = new Date()
   await conversation.save()
 
   // Increment unread count for all participants except sender
-  for (const participantId of conversation.participants) {
-    if (participantId.toString() !== senderId) {
-      const currentCount = conversation.unreadCount.get(participantId.toString()) || 0
-      conversation.unreadCount.set(participantId.toString(), currentCount + 1)
-    }
+  const recipientIds = conversation.participants
+    .filter(participantId => participantId.toString() !== senderId)
+    .map(participantId => participantId.toString())
+
+  for (const participantId of recipientIds) {
+    const currentCount = conversation.unreadCount.get(participantId) || 0
+    conversation.unreadCount.set(participantId, currentCount + 1)
   }
   await conversation.save()
+
+  const messagePreview = message.content
+    ? message.content.slice(0, 120)
+    : message.attachments && message.attachments.length > 0
+      ? message.attachments[0].type === 'image'
+        ? 'Sent a photo'
+        : message.attachments[0].type === 'video'
+          ? 'Sent a video'
+          : message.attachments[0].type === 'audio'
+            ? 'Sent an audio'
+            : 'Sent a file'
+      : 'Sent a new message'
+
+  // Create message notifications for recipients
+  const notificationResults = await Promise.all(
+    recipientIds.map(async recipientId => {
+      const notification = await createNotificationService(
+        recipientId,
+        senderId,
+        'message',
+        null,
+        null,
+        conversationId,
+        messagePreview,
+      )
+      return notification ? { recipientId, notification } : null
+    }),
+  ).then(results => results.filter(Boolean))
 
   // Populate sender data
   await message.populate('sender', 'fullName email profilePicture')
@@ -91,10 +134,11 @@ export const createMessageService = async (senderId, conversationId, content, at
       unreadCount: Object.fromEntries(conversation.unreadCount),
       updatedAt: formatTime(conversation.updatedAt),
     },
+    notifications: notificationResults,
   }
 }
 
-export const getMessageByIdService = async (messageId) => {
+export const getMessageByIdService = async messageId => {
   const message = await Message.findById(messageId)
     .populate('sender', 'fullName email profilePicture')
     .populate('readBy', 'fullName email profilePicture')
@@ -161,7 +205,7 @@ export const updateMessageService = async (messageId, userId, data) => {
   const updatedMessage = await Message.findByIdAndUpdate(
     new mongoose.Types.ObjectId(messageId),
     { $set: data },
-    { new: true }
+    { new: true },
   )
     .populate('sender', 'fullName email profilePicture')
     .populate('readBy', 'fullName email profilePicture')
@@ -194,8 +238,9 @@ export const deleteMessageService = async (messageId, userId) => {
   // Update conversation's lastMessage if this was the last message
   const conversation = await Conversation.findById(conversationId)
   if (conversation && conversation.lastMessage?.toString() === messageId) {
-    const lastMessage = await Message.findOne({ conversation: conversationId })
-      .sort({ createdAt: -1 })
+    const lastMessage = await Message.findOne({ conversation: conversationId }).sort({
+      createdAt: -1,
+    })
     conversation.lastMessage = lastMessage?._id || null
     await conversation.save()
   }
@@ -251,7 +296,7 @@ export const markConversationMessagesAsReadService = async (conversationId, user
     {
       $addToSet: { readBy: userId },
       $set: { readAt: new Date() },
-    }
+    },
   )
 
   // Reset unread count
@@ -261,7 +306,7 @@ export const markConversationMessagesAsReadService = async (conversationId, user
   return { message: 'All messages marked as read' }
 }
 
-const transformMessage = (message) => {
+const transformMessage = message => {
   return {
     _id: message._id,
     id: message._id,
@@ -270,13 +315,15 @@ const transformMessage = (message) => {
       id: message.sender._id,
       name: message.sender.fullName,
       handle: message.sender.email?.split('@')[0] || 'user',
-      avatar: message.sender.profilePicture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + message.sender.fullName,
+      avatar:
+        message.sender.profilePicture ||
+        'https://api.dicebear.com/7.x/avataaars/svg?seed=' + message.sender.fullName,
     },
     conversation: message.conversation,
     content: message.content,
     attachments: message.attachments || [],
     sharedPost: message.sharedPost || null,
-    readBy: message.readBy.map((user) => ({
+    readBy: message.readBy.map(user => ({
       _id: user._id,
       id: user._id,
       name: user.fullName,

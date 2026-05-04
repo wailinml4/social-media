@@ -1,24 +1,26 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import {
   createMessage,
   getMessages,
-  markMessageAsRead,
-} from '../services/messageService';
-import { useSocket } from './SocketContext';
-import { useAuth } from './AuthContext';
-import { useConversations } from './ConversationContext';
+  updateMessage,
+  deleteMessage,
+} from '../services/messageService'
+import { useSocket } from './SocketContext'
+import { useAuth } from './AuthContext'
+import { useConversations } from './ConversationContext'
 
-export const MessageContext = createContext();
+export const MessageContext = createContext()
 
 export const MessageProvider = ({ children }) => {
-  const [messages, setMessages] = useState([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [typingUsers, setTypingUsers] = useState({});
-  const [error, setError] = useState(null);
+  const [messages, setMessages] = useState([])
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const [isSendingMessage, setIsSendingMessage] = useState(false)
+  const [typingUsers, setTypingUsers] = useState({})
+  const [error, setError] = useState(null)
 
-  const { user } = useAuth();
-  const { currentConversation } = useConversations();
+  const { user } = useAuth()
+  const { currentConversation } = useConversations()
   const {
     isConnected,
     sendMessage: socketSendMessage,
@@ -39,182 +41,190 @@ export const MessageProvider = ({ children }) => {
     offMessageDeleted,
     onMessageReadReceipt,
     offMessageReadReceipt,
-  } = useSocket();
+  } = useSocket()
 
-  const fetchMessages = useCallback(async (conversationId) => {
+  const fetchMessages = useCallback(async conversationId => {
     try {
-      setIsLoadingMessages(true);
-      setError(null);
-      const result = await getMessages(conversationId);
-      setMessages(result.messages || []);
+      setIsLoadingMessages(true)
+      setError(null)
+      const result = await getMessages(conversationId)
+      setMessages(result.messages || [])
     } catch (error) {
-      setError(error.message);
-      throw error;
+      setError(error.message)
+      throw error
     } finally {
-      setIsLoadingMessages(false);
+      setIsLoadingMessages(false)
     }
-  }, []);
+  }, [])
 
   const sendMessage = useCallback(
     async (conversationId, content, attachments = [], sharedPost = null) => {
-      if (!user) return;
+      if (!user) return
       try {
-        setIsSendingMessage(true);
-        setError(null);
+        setIsSendingMessage(true)
+        setError(null)
 
         // Send via socket for real-time delivery
         if (isConnected) {
-          socketSendMessage(conversationId, content, attachments, sharedPost);
+          socketSendMessage(conversationId, content, attachments, sharedPost)
         } else {
           // Fallback to REST API
-          const result = await createMessage(conversationId, content, attachments, sharedPost);
-          setMessages((prev) => [...prev, result.message]);
+          const result = await createMessage(conversationId, content, attachments, sharedPost)
+          setMessages(prev => [...prev, result.message])
         }
       } catch (error) {
-        setError(error.message);
-        throw error;
+        setError(error.message)
+        throw error
       } finally {
-        setIsSendingMessage(false);
+        setIsSendingMessage(false)
       }
     },
-    [isConnected, socketSendMessage, user]
-  );
+    [isConnected, socketSendMessage, user],
+  )
 
   const editMessage = useCallback(
     async (messageId, content) => {
       try {
-        setError(null);
+        setError(null)
         // Use socket for real-time update
         if (isConnected) {
-          emitUpdateMessage(messageId, content);
+          emitUpdateMessage(messageId, content)
           // Optimistically update local state
-          setMessages((prev) =>
-            prev.map((msg) =>
-              (msg.id === messageId || msg._id === messageId) ? { ...msg, content } : msg
-            )
-          );
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === messageId || msg._id === messageId ? { ...msg, content } : msg,
+            ),
+          )
         } else {
           // Fallback to REST API
-          const result = await updateMessage(messageId, content);
-          setMessages((prev) =>
-            prev.map((msg) =>
-              (msg.id === messageId || msg._id === messageId) ? result : msg
-            )
-          );
+          const result = await updateMessage(messageId, content)
+          setMessages(prev =>
+            prev.map(msg => (msg.id === messageId || msg._id === messageId ? result : msg)),
+          )
         }
       } catch (error) {
-        setError(error.message);
-        throw error;
+        setError(error.message)
+        throw error
       }
     },
-    [isConnected, emitUpdateMessage]
-  );
+    [isConnected, emitUpdateMessage],
+  )
 
   const removeMessage = useCallback(
-    async (messageId) => {
+    async messageId => {
       try {
-        setError(null);
+        setError(null)
         // Use socket for real-time delete
         if (isConnected) {
-          emitDeleteMessage(messageId);
+          emitDeleteMessage(messageId)
           // Optimistically update local state
-          setMessages((prev) => prev.filter((msg) => msg.id !== messageId && msg._id !== messageId));
+          setMessages(prev => prev.filter(msg => msg.id !== messageId && msg._id !== messageId))
         } else {
           // Fallback to REST API
-          await deleteMessage(messageId);
-          setMessages((prev) => prev.filter((msg) => msg.id !== messageId && msg._id !== messageId));
+          await deleteMessage(messageId)
+          setMessages(prev => prev.filter(msg => msg.id !== messageId && msg._id !== messageId))
         }
       } catch (error) {
-        setError(error.message);
-        throw error;
+        setError(error.message)
+        throw error
       }
     },
-    [isConnected, emitDeleteMessage]
-  );
+    [isConnected, emitDeleteMessage],
+  )
 
   // Listen for real-time messages
   useEffect(() => {
     if (isConnected) {
-      onMessage((data) => {
-        const { message, conversation } = data;
-        
+      onMessage(data => {
+        const { message } = data
+
         // Add message to current conversation if it matches
-        if (currentConversation && (message.conversation === currentConversation.id || message.conversation === currentConversation._id)) {
-          setMessages((prev) => [...prev, message]);
+        if (
+          currentConversation &&
+          (message.conversation === currentConversation.id ||
+            message.conversation === currentConversation._id)
+        ) {
+          setMessages(prev => [...prev, message])
         }
-      });
+      })
 
       return () => {
-        offMessage();
-      };
+        offMessage()
+      }
     }
-  }, [isConnected, onMessage, offMessage, currentConversation]);
+  }, [isConnected, onMessage, offMessage, currentConversation])
 
   // Listen for typing indicators
   useEffect(() => {
     if (isConnected) {
       onTyping(({ userId, conversationId }) => {
-        setTypingUsers((prev) => ({
+        setTypingUsers(prev => ({
           ...prev,
           [conversationId]: [...new Set([...(prev[conversationId] || []), userId])],
-        }));
-      });
+        }))
+      })
 
       onStoppedTyping(({ userId, conversationId }) => {
-        setTypingUsers((prev) => ({
+        setTypingUsers(prev => ({
           ...prev,
-          [conversationId]: (prev[conversationId] || []).filter((id) => id !== userId),
-        }));
-      });
+          [conversationId]: (prev[conversationId] || []).filter(id => id !== userId),
+        }))
+      })
 
       return () => {
-        offTyping();
-        offStoppedTyping();
-      };
+        offTyping()
+        offStoppedTyping()
+      }
     }
-  }, [isConnected, onTyping, offTyping, onStoppedTyping, offStoppedTyping]);
+  }, [isConnected, onTyping, offTyping, onStoppedTyping, offStoppedTyping])
 
   // Listen for message updates
   useEffect(() => {
     if (isConnected) {
-      onMessageUpdated((message) => {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            (msg.id === message.id || msg._id === message._id) ? message : msg
-          )
-        );
-      });
+      onMessageUpdated(message => {
+        setMessages(prev =>
+          prev.map(msg => (msg.id === message.id || msg._id === message._id ? message : msg)),
+        )
+      })
 
       onMessageDeleted(({ messageId }) => {
-        setMessages((prev) => prev.filter((msg) => msg.id !== messageId && msg._id !== messageId));
-      });
+        setMessages(prev => prev.filter(msg => msg.id !== messageId && msg._id !== messageId))
+      })
 
       onMessageReadReceipt(({ messageId, userId }) => {
-        setMessages((prev) =>
-          prev.map((msg) => {
+        setMessages(prev =>
+          prev.map(msg => {
             if (msg.id === messageId || msg._id === messageId) {
-              const readBy = msg.readBy || [];
+              const readBy = msg.readBy || []
               if (!readBy.includes(userId)) {
-                return { ...msg, readBy: [...readBy, userId] };
+                return { ...msg, readBy: [...readBy, userId] }
               }
             }
-            return msg;
-          })
-        );
-      });
+            return msg
+          }),
+        )
+      })
 
       return () => {
-        offMessageUpdated();
-        offMessageDeleted();
-        offMessageReadReceipt();
-      };
+        offMessageUpdated()
+        offMessageDeleted()
+        offMessageReadReceipt()
+      }
     }
-  }, [isConnected, onMessageUpdated, offMessageUpdated, onMessageDeleted, offMessageDeleted, onMessageReadReceipt, offMessageReadReceipt]);
+  }, [
+    isConnected,
+    onMessageUpdated,
+    offMessageUpdated,
+    onMessageDeleted,
+    offMessageDeleted,
+    onMessageReadReceipt,
+    offMessageReadReceipt,
+  ])
 
   // Clear messages when conversation changes
   useEffect(() => {
-    setMessages([]);
-  }, [currentConversation]);
+    setTimeout(() => setMessages([]), 0)
+  }, [currentConversation])
 
   return (
     <MessageContext.Provider
@@ -235,7 +245,7 @@ export const MessageProvider = ({ children }) => {
     >
       {children}
     </MessageContext.Provider>
-  );
-};
+  )
+}
 
-export const useMessages = () => useContext(MessageContext);
+export const useMessages = () => useContext(MessageContext)

@@ -1,13 +1,13 @@
-import { uploadMediaService } from "../services/uploadService.js"
+import { uploadMediaService } from '../services/uploadService.js'
 
 export const uploadMedia = async (req, res, next) => {
   try {
     const { image } = req.body
-    
+
     if (!image) {
       return res.status(400).json({
         success: false,
-        message: "No media provided",
+        message: 'No media provided',
       })
     }
 

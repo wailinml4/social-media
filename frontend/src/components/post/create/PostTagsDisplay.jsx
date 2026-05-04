@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const PostTagsDisplay = ({ taggedUsers, location }) => {
   return (
@@ -14,7 +14,7 @@ const PostTagsDisplay = ({ taggedUsers, location }) => {
         </span>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PostTagsDisplay;
+export default PostTagsDisplay

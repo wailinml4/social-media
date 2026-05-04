@@ -1,12 +1,12 @@
-import React from 'react';
-import { AtSign, ImagePlus, MapPin, SmilePlus } from 'lucide-react';
+import React from 'react'
+import { AtSign, ImagePlus, MapPin, SmilePlus } from 'lucide-react'
 
-const PostActionButtons = ({ 
-  onMediaClick, 
-  onEmojiClick, 
-  onTagClick, 
-  onLocationClick, 
-  locationLabel 
+const PostActionButtons = ({
+  onMediaClick,
+  onEmojiClick,
+  onTagClick,
+  onLocationClick,
+  locationLabel,
 }) => {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -43,7 +43,7 @@ const PostActionButtons = ({
         {locationLabel}
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default PostActionButtons;
+export default PostActionButtons

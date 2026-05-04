@@ -1,11 +1,11 @@
-import React from 'react';
+import React from 'react'
 
-const EMOJI_SUGGESTIONS = ['✨', '🔥', '🤍', '🚀', '🎧', '📸'];
+const EMOJI_SUGGESTIONS = ['✨', '🔥', '🤍', '🚀', '🎧', '📸']
 
 const EmojiPicker = ({ onEmojiSelect }) => {
   return (
     <div className="mt-3 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-surface p-2.5">
-      {EMOJI_SUGGESTIONS.map((emoji) => (
+      {EMOJI_SUGGESTIONS.map(emoji => (
         <button
           key={emoji}
           type="button"
@@ -16,7 +16,7 @@ const EmojiPicker = ({ onEmojiSelect }) => {
         </button>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default EmojiPicker;
+export default EmojiPicker

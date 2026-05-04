@@ -1,22 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { ChevronLeft, MoreVertical, Paperclip, Phone, Send, Smile, Video, X } from 'lucide-react';
-import EmojiPicker from 'emoji-picker-react';
+import { ChevronLeft, MoreVertical, Paperclip, Phone, Send, Smile, Video, X } from 'lucide-react'
+import EmojiPicker from 'emoji-picker-react'
 
-import Button from '../ui/Button';
-import ChatMessageSkeleton from './ChatMessageSkeleton';
-import MessageBubble from './MessageBubble';
-import { useConversations } from '../../context/ConversationContext';
-import { useMessages } from '../../context/MessageContext';
-import { useAuth } from '../../context/AuthContext';
-import { uploadImage } from '../../services/uploadService';
+import Button from '../ui/Button'
+import ChatMessageSkeleton from './ChatMessageSkeleton'
+import MessageBubble from './MessageBubble'
+import { useConversations } from '../../context/ConversationContext'
+import { useMessages } from '../../context/MessageContext'
+import { useAuth } from '../../context/AuthContext'
+import { uploadImage } from '../../services/uploadService'
 
-const ChatWindow = ({
-  isMobileListVisible,
-  setIsMobileListVisible,
-}) => {
-  const { user } = useAuth();
-  const { currentConversation } = useConversations();
+const ChatWindow = ({ isMobileListVisible, setIsMobileListVisible }) => {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { currentConversation } = useConversations()
   const {
     messages,
     isLoadingMessages,
@@ -26,195 +25,217 @@ const ChatWindow = ({
     emitTyping,
     emitStopTyping,
     fetchMessages,
-  } = useMessages();
-  const { markAsRead } = useConversations();
+  } = useMessages()
+  const { markAsRead } = useConversations()
 
-  const [inputText, setInputText] = useState('');
-  const [attachments, setAttachments] = useState([]);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const messagesEndRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
-  const markedAsReadRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const emojiPickerRef = useRef(null);
+  const [inputText, setInputText] = useState('')
+  const [attachments, setAttachments] = useState([])
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const messagesEndRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
+  const markedAsReadRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const emojiPickerRef = useRef(null)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   // Fetch messages when conversation changes
   useEffect(() => {
     if (currentConversation) {
-      const conversationId = currentConversation.id || currentConversation._id;
-      fetchMessages(conversationId).catch((error) => {
-        console.error('Failed to fetch messages:', error);
-      });
+      const conversationId = currentConversation.id || currentConversation._id
+      fetchMessages(conversationId).catch(error => {
+        console.error('Failed to fetch messages:', error)
+      })
     }
-  }, [currentConversation, fetchMessages]);
+  }, [currentConversation, fetchMessages])
 
   // Mark conversation as read when opened
   useEffect(() => {
     if (currentConversation) {
-      const conversationId = currentConversation.id || currentConversation._id;
+      const conversationId = currentConversation.id || currentConversation._id
       // Only mark as read if this is a different conversation than the last one marked
       if (markedAsReadRef.current !== conversationId) {
-        markAsRead(conversationId).catch((error) => {
-          console.error('Failed to mark conversation as read:', error);
-        });
-        markedAsReadRef.current = conversationId;
+        markAsRead(conversationId).catch(error => {
+          console.error('Failed to mark conversation as read:', error)
+        })
+        markedAsReadRef.current = conversationId
       }
     }
-  }, [currentConversation, markAsRead]);
+  }, [currentConversation, markAsRead])
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!currentConversation || isSendingMessage) return;
-    if (!inputText.trim() && attachments.length === 0) return;
+  const handleSendMessage = async e => {
+    e.preventDefault()
+    if (!currentConversation || isSendingMessage) return
+    if (!inputText.trim() && attachments.length === 0) return
 
     try {
       // Upload attachments first
-      const uploadedAttachments = [];
+      const uploadedAttachments = []
       for (const attachment of attachments) {
-        const url = await uploadImage(attachment.file);
+        const url = await uploadImage(attachment.file)
         uploadedAttachments.push({
           type: attachment.type,
           url,
           name: attachment.file.name,
           size: attachment.file.size,
           mimeType: attachment.file.type,
-        });
+        })
       }
 
-      await sendMessage(currentConversation.id || currentConversation._id, inputText.trim(), uploadedAttachments);
-      setInputText('');
-      setAttachments([]);
+      await sendMessage(
+        currentConversation.id || currentConversation._id,
+        inputText.trim(),
+        uploadedAttachments,
+      )
+      setInputText('')
+      setAttachments([])
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('Failed to send message:', error)
     }
-  };
+  }
 
-  const handleInputChange = (e) => {
-    setInputText(e.target.value);
+  const handleInputChange = e => {
+    setInputText(e.target.value)
 
     // Emit typing indicator
     if (currentConversation) {
-      emitTyping(currentConversation.id || currentConversation._id);
+      emitTyping(currentConversation.id || currentConversation._id)
 
       // Clear previous timeout
       if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
+        clearTimeout(typingTimeoutRef.current)
       }
 
       // Emit stop typing after 3 seconds of no activity
       typingTimeoutRef.current = setTimeout(() => {
-        emitStopTyping(currentConversation.id || currentConversation._id);
-      }, 3000);
+        emitStopTyping(currentConversation.id || currentConversation._id)
+      }, 3000)
     }
-  };
+  }
 
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    const newAttachments = files.map((file) => {
-      const type = file.type.startsWith('image/') ? 'image' : 
-                   file.type.startsWith('video/') ? 'video' : 
-                   file.type.startsWith('audio/') ? 'audio' : 'file';
-      
+  const handleFileSelect = e => {
+    const files = Array.from(e.target.files || [])
+    const newAttachments = files.map(file => {
+      const type = file.type.startsWith('image/')
+        ? 'image'
+        : file.type.startsWith('video/')
+          ? 'video'
+          : file.type.startsWith('audio/')
+            ? 'audio'
+            : 'file'
+
       return {
         id: Date.now() + Math.random(),
         file,
         type,
         preview: URL.createObjectURL(file),
-      };
-    });
-    setAttachments((prev) => [...prev, ...newAttachments]);
-  };
+      }
+    })
+    setAttachments(prev => [...prev, ...newAttachments])
+  }
 
-  const handleRemoveAttachment = (id) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
-  };
+  const handleRemoveAttachment = id => {
+    setAttachments(prev => prev.filter(a => a.id !== id))
+  }
 
-  const handleEmojiClick = (emojiData) => {
-    setInputText((prev) => prev + emojiData.emoji);
-  };
+  const handleEmojiClick = emojiData => {
+    setInputText(prev => prev + emojiData.emoji)
+  }
 
   // Close emoji picker when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = event => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
-        setShowEmojiPicker(false);
+        setShowEmojiPicker(false)
       }
-    };
+    }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const getTypingUsersText = () => {
-    if (!currentConversation) return '';
-    const typingUserIds = typingUsers[currentConversation.id || currentConversation._id] || [];
-    if (typingUserIds.length === 0) return '';
-    
+    if (!currentConversation) return ''
+    const typingUserIds = typingUsers[currentConversation.id || currentConversation._id] || []
+    if (typingUserIds.length === 0) return ''
+
     // Get the names of typing users
     const typingUsersNames = typingUserIds
-      .map((userId) => {
+      .map(userId => {
         const typingUser = currentConversation.participants.find(
-          (p) => (p.id === userId || p._id === userId) && (p.id !== user._id && p._id !== user._id)
-        );
-        return typingUser ? (typingUser.name || typingUser.fullName) : null;
+          p => (p.id === userId || p._id === userId) && p.id !== user._id && p._id !== user._id,
+        )
+        return typingUser ? typingUser.name || typingUser.fullName : null
       })
-      .filter(Boolean);
+      .filter(Boolean)
 
-    if (typingUsersNames.length === 0) return '';
-    if (typingUsersNames.length === 1) return `${typingUsersNames[0]} is typing...`;
-    if (typingUsersNames.length === 2) return `${typingUsersNames.join(' and ')} are typing...`;
-    return `${typingUsersNames.length} people are typing...`;
-  };
+    if (typingUsersNames.length === 0) return ''
+    if (typingUsersNames.length === 1) return `${typingUsersNames[0]} is typing...`
+    if (typingUsersNames.length === 2) return `${typingUsersNames.join(' and ')} are typing...`
+    return `${typingUsersNames.length} people are typing...`
+  }
 
-  const activeChat = currentConversation && user
-    ? {
-        user: currentConversation.participants.find(
-          (p) => p.id !== user._id && p._id !== user._id
-        ) || currentConversation.participants[0],
-      }
-    : null;
+  const activeChat =
+    currentConversation && user
+      ? {
+          user:
+            currentConversation.participants.find(p => p.id !== user._id && p._id !== user._id) ||
+            currentConversation.participants[0],
+        }
+      : null
 
   return (
-    <div className={`flex-1 flex flex-col bg-bg-dark min-w-0 ${
-      isMobileListVisible ? 'hidden sm:flex' : 'flex'
-    }`}>
-      
+    <div
+      className={`flex-1 flex flex-col bg-bg-dark min-w-0 ${
+        isMobileListVisible ? 'hidden sm:flex' : 'flex'
+      }`}
+    >
       {activeChat ? (
         <>
           {/* Chat Header */}
           <div className="h-[72px] px-4 sm:px-6 flex items-center justify-between border-b border-white/10 bg-bg-dark/80 backdrop-blur-xl sticky top-0 z-10 flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
-              <button 
+              <button
                 onClick={() => setIsMobileListVisible(true)}
                 className="sm:hidden -ml-2 p-2 text-gray-400 hover:text-white transition-colors"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <div className="relative">
-                <img src={activeChat.user.avatar} alt="Avatar" className="w-10 h-10 rounded-full border border-white/10" />
-                {activeChat.user.isOnline && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-bg-dark rounded-full" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-white text-[15px] truncate">{activeChat.user.name || activeChat.user.fullName}</h3>
-                <p className="text-xs text-text-dim truncate">
-                  {activeChat.user.isOnline ? (
-                    <span className="text-green-500">Online</span>
-                  ) : (
-                    'Last seen recently'
+              <button
+                type="button"
+                onClick={() => navigate(`/profile/${activeChat.user._id || activeChat.user.id}`)}
+                className="relative flex items-center gap-3 min-w-0 text-left"
+              >
+                <div className="relative">
+                  <img
+                    src={activeChat.user.avatar}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full border border-white/10"
+                  />
+                  {activeChat.user.isOnline && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-bg-dark rounded-full" />
                   )}
-                </p>
-              </div>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-white text-[15px] truncate hover:underline">
+                    {activeChat.user.name || activeChat.user.fullName}
+                  </h3>
+                  <p className="text-xs text-text-dim truncate">
+                    {activeChat.user.isOnline ? (
+                      <span className="text-green-500">Online</span>
+                    ) : (
+                      'Last seen recently'
+                    )}
+                  </p>
+                </div>
+              </button>
             </div>
-            
+
             <div className="flex items-center gap-1 sm:gap-2 text-text-dim">
               <button className="p-2 hover:bg-white/10 hover:text-primary rounded-full transition-colors hidden sm:block">
                 <Phone className="w-5 h-5" />
@@ -231,7 +252,10 @@ const ChatWindow = ({
           {/* Messages Area */}
           <div
             className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 no-scrollbar"
-            style={{ backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, transparent 100%)' }}
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, transparent 100%)',
+            }}
           >
             {isLoadingMessages ? (
               <div className="flex flex-col">
@@ -242,17 +266,15 @@ const ChatWindow = ({
             ) : messages.length > 0 ? (
               <>
                 {messages.map((msg, index) => (
-                  <MessageBubble 
-                    key={msg.id || msg._id} 
-                    message={msg} 
+                  <MessageBubble
+                    key={msg.id || msg._id}
+                    message={msg}
                     isMe={msg.sender.id === user._id || msg.sender._id === user._id}
                     isLastMessage={index === messages.length - 1}
                   />
                 ))}
                 {getTypingUsersText() && (
-                  <div className="text-xs text-text-dim italic mb-2">
-                    {getTypingUsersText()}
-                  </div>
+                  <div className="text-xs text-text-dim italic mb-2">{getTypingUsersText()}</div>
                 )}
               </>
             ) : (
@@ -270,7 +292,7 @@ const ChatWindow = ({
           <div className="p-4 bg-bg-dark border-t border-white/10 flex-shrink-0">
             {attachments.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
-                {attachments.map((attachment) => (
+                {attachments.map(attachment => (
                   <div key={attachment.id} className="relative group">
                     {attachment.type === 'image' ? (
                       <img
@@ -294,7 +316,7 @@ const ChatWindow = ({
                 ))}
               </div>
             )}
-            <form 
+            <form
               onSubmit={handleSendMessage}
               className="flex items-end gap-2 bg-white/5 border border-white/10 rounded-2xl p-2 focus-within:border-primary/50 transition-colors"
             >
@@ -306,44 +328,44 @@ const ChatWindow = ({
                 className="hidden"
                 onChange={handleFileSelect}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0"
               >
                 <Paperclip className="w-5 h-5" />
               </button>
-              
-              <textarea 
+
+              <textarea
                 value={inputText}
                 onChange={handleInputChange}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
+                    e.preventDefault()
+                    handleSendMessage(e)
                   }
                 }}
-                placeholder="Start a new message" 
+                placeholder="Start a new message"
                 className="flex-1 bg-transparent border-none text-white focus:ring-0 resize-none max-h-32 min-h-[40px] py-2 px-2 text-[15px] placeholder-gray-500 outline-none"
                 rows={1}
               />
-              
-              <button 
-                type="button" 
+
+              <button
+                type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 className="p-2 text-text-dim hover:text-primary transition-colors flex-shrink-0 relative"
               >
                 <Smile className="w-5 h-5" />
               </button>
-              
+
               {showEmojiPicker && (
                 <div ref={emojiPickerRef} className="absolute bottom-20 right-16 z-20">
                   <EmojiPicker onEmojiClick={handleEmojiClick} />
                 </div>
               )}
-              
-              <Button 
-                type="submit" 
+
+              <Button
+                type="submit"
                 size="sm"
                 disabled={(!inputText.trim() && attachments.length === 0) || isSendingMessage}
                 className="ml-1"
@@ -363,13 +385,11 @@ const ChatWindow = ({
           <p className="text-text-dim max-w-md">
             Choose from your existing conversations, start a new one, or just keep swimming.
           </p>
-          <Button className="mt-8 px-8">
-            New message
-          </Button>
+          <Button className="mt-8 px-8">New message</Button>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ChatWindow;
+export default ChatWindow

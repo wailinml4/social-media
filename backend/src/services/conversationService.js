@@ -1,8 +1,8 @@
-import { Conversation } from "../models/Conversation.js"
-import { Message } from "../models/Message.js"
-import User from "../models/User.js"
+import Conversation from '../models/Conversation.js'
+import Message from '../models/Message.js'
+import User from '../models/User.js'
 
-const formatTime = (date) => {
+const formatTime = date => {
   if (!date) return ''
   const now = new Date()
   const diff = now - date
@@ -18,7 +18,7 @@ const formatTime = (date) => {
   return date.toLocaleDateString()
 }
 
-export const createConversationService = async (participants) => {
+export const createConversationService = async participants => {
   if (!participants || participants.length < 2) {
     const error = new Error('At least 2 participants required')
     error.statusCode = 400
@@ -27,7 +27,7 @@ export const createConversationService = async (participants) => {
 
   // Check if conversation already exists between these participants
   const existingConversation = await Conversation.findOne({
-    participants: { $all: participants, $size: participants.length }
+    participants: { $all: participants, $size: participants.length },
   }).populate('lastMessage')
 
   if (existingConversation) {
@@ -43,7 +43,7 @@ export const createConversationService = async (participants) => {
   return transformConversation(conversation)
 }
 
-export const getConversationByIdService = async (conversationId) => {
+export const getConversationByIdService = async conversationId => {
   const conversation = await Conversation.findById(conversationId)
     .populate('lastMessage')
     .populate('participants', 'fullName email profilePicture isOnline lastSeen')
@@ -60,7 +60,7 @@ export const getConversationByIdService = async (conversationId) => {
 export const getUserConversationsService = async (userId, page = 1, limit = 20) => {
   const skip = (page - 1) * limit
   const conversations = await Conversation.find({
-    participants: userId
+    participants: userId,
   })
     .populate('lastMessage')
     .populate('participants', 'fullName email profilePicture isOnline lastSeen')
@@ -69,7 +69,7 @@ export const getUserConversationsService = async (userId, page = 1, limit = 20) 
     .limit(limit)
 
   const total = await Conversation.countDocuments({
-    participants: userId
+    participants: userId,
   })
 
   const transformedConversations = conversations.map(transformConversation)
@@ -123,19 +123,22 @@ export const markConversationAsReadService = async (conversationId, userId) => {
     {
       $addToSet: { readBy: userId },
       $set: { readAt: new Date() },
-    }
+    },
   )
 
   return { message: 'Conversation marked as read' }
 }
 
-const transformConversation = (conversation) => {
+const transformConversation = conversation => {
   // Generate last message text based on content or attachments
   let lastMessageText = ''
   if (conversation.lastMessage) {
     if (conversation.lastMessage.content) {
       lastMessageText = conversation.lastMessage.content
-    } else if (conversation.lastMessage.attachments && conversation.lastMessage.attachments.length > 0) {
+    } else if (
+      conversation.lastMessage.attachments &&
+      conversation.lastMessage.attachments.length > 0
+    ) {
       const firstAttachment = conversation.lastMessage.attachments[0]
       if (firstAttachment.type === 'image') {
         lastMessageText = 'Sent a photo'
@@ -152,12 +155,12 @@ const transformConversation = (conversation) => {
   const transformed = {
     _id: conversation._id,
     id: conversation._id,
-    participants: conversation.participants.map((participant) => ({
+    participants: conversation.participants.map(participant => ({
       _id: participant._id,
       id: participant._id,
       name: participant.fullName,
       handle: participant.email?.split('@')[0] || 'user',
-      avatar: participant.profilePicture || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + participant.fullName,
+      avatar: participant.profilePicture || null,
       isOnline: participant.isOnline || false,
       lastSeen: participant.lastSeen,
     })),

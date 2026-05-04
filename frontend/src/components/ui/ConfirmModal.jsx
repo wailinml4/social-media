@@ -1,41 +1,37 @@
-import React, { useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
-import { useModal } from '../../context/ModalContext';
-import { useModalAnimation } from '../../animations/useModalAnimation';
+import React, { useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
+import { useModal } from '../../context/ModalContext'
+import { useModalAnimation } from '../../animations/useModalAnimation'
 
 const ConfirmModal = () => {
-  const {
-    isConfirmModalOpen,
-    confirmModalData,
-    closeConfirmModal,
-  } = useModal();
+  const { isConfirmModalOpen, confirmModalData, closeConfirmModal } = useModal()
 
-  const overlayRef = useRef(null);
-  const modalRef = useRef(null);
+  const overlayRef = useRef(null)
+  const modalRef = useRef(null)
   const { isRendered } = useModalAnimation(isConfirmModalOpen, {
     overlayRef,
     modalRef,
-  });
+  })
 
   useEffect(() => {
-    if (!isConfirmModalOpen) return undefined;
+    if (!isConfirmModalOpen) return undefined
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        closeConfirmModal();
+        closeConfirmModal()
       }
-    };
+    }
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isConfirmModalOpen, closeConfirmModal]);
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isConfirmModalOpen, closeConfirmModal])
 
-  if (!isRendered || !confirmModalData) return null;
+  if (!isRendered || !confirmModalData) return null
 
   const {
     title = 'Confirm',
@@ -43,12 +39,12 @@ const ConfirmModal = () => {
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     onConfirm,
-  } = confirmModalData;
+  } = confirmModalData
 
   const handleConfirm = async () => {
-    closeConfirmModal();
-    await onConfirm?.();
-  };
+    closeConfirmModal()
+    await onConfirm?.()
+  }
 
   return (
     <div className="fixed inset-0 z-[140] flex items-end justify-center sm:items-center sm:p-6">
@@ -101,7 +97,7 @@ const ConfirmModal = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ConfirmModal;
+export default ConfirmModal

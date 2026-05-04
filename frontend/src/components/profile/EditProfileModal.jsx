@@ -1,119 +1,159 @@
-import React, { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import React, { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 
-import { X } from 'lucide-react';
+import { X } from 'lucide-react'
 
-import { useModal } from '../../context/ModalContext';
-import { useAuth } from '../../context/AuthContext';
-import { updateProfile } from '../../services/userService';
-import { uploadImage } from '../../services/uploadService';
-import { useModalAnimation } from '../../animations/useModalAnimation';
-import ProfileImageUpload from './ProfileImageUpload';
-import ProfileForm from './ProfileForm';
+import { useModal } from '../../context/ModalContext'
+import { useAuth } from '../../context/AuthContext'
+import { updateProfile, getCurrentProfile } from '../../services/userService'
+import { uploadImage } from '../../services/uploadService'
+import { useModalAnimation } from '../../animations/useModalAnimation'
+import ProfileImageUpload from './ProfileImageUpload'
+import ProfileForm from './ProfileForm'
 
 const EditProfileModal = () => {
-  const { isEditProfileOpen, closeEditProfileModal } = useModal();
-  const { user: currentUser, setUser } = useAuth();
-  const overlayRef = useRef(null);
-  const modalRef = useRef(null);
+  const { isEditProfileOpen, closeEditProfileModal } = useModal()
+  const { user: currentUser, setUser } = useAuth()
+  const overlayRef = useRef(null)
+  const modalRef = useRef(null)
 
   const { isRendered } = useModalAnimation(isEditProfileOpen, {
     overlayRef,
     modalRef,
     onCloseComplete: () => {
-      resetForm();
+      resetForm()
     },
-  });
+  })
 
-  const [fullName, setFullName] = useState(currentUser?.fullName || '');
-  const [bio, setBio] = useState(currentUser?.bio || '');
-  const [avatarPreview, setAvatarPreview] = useState(currentUser?.profilePicture || '');
-  const [coverPreview, setCoverPreview] = useState(currentUser?.coverPicture || '');
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [coverFile, setCoverFile] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [fullName, setFullName] = useState(currentUser?.fullName || '')
+  const [bio, setBio] = useState(currentUser?.bio || '')
+  const [avatarPreview, setAvatarPreview] = useState(currentUser?.profilePicture || '')
+  const [coverPreview, setCoverPreview] = useState(currentUser?.coverPicture || '')
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [coverFile, setCoverFile] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const hasChanges =
     fullName !== (currentUser?.fullName || '') ||
     bio !== (currentUser?.bio || '') ||
     avatarFile !== null ||
-    coverFile !== null;
+    coverFile !== null
 
   useEffect(() => {
-    if (!isEditProfileOpen) return undefined;
+    if (!isEditProfileOpen) return undefined
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        closeEditProfileModal();
+        closeEditProfileModal()
       }
-    };
+    }
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isEditProfileOpen, closeEditProfileModal]);
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isEditProfileOpen, closeEditProfileModal])
+
+  // When the modal opens, prefill form with the current user's latest data
+  useEffect(() => {
+    if (!isEditProfileOpen) return
+    setTimeout(() => setFullName(currentUser?.fullName || ''), 0)
+    setTimeout(() => setBio(currentUser?.bio || ''), 0)
+    setTimeout(() => setAvatarPreview(currentUser?.profilePicture || ''), 0)
+    setTimeout(() => setCoverPreview(currentUser?.coverPicture || ''), 0)
+    setTimeout(() => setAvatarFile(null), 0)
+    setTimeout(() => setCoverFile(null), 0)
+  }, [isEditProfileOpen, currentUser])
 
   const resetForm = () => {
-    setFullName(currentUser?.fullName || '');
-    setBio(currentUser?.bio || '');
-    setAvatarPreview(currentUser?.profilePicture || '');
-    setCoverPreview(currentUser?.coverPicture || '');
-    setAvatarFile(null);
-    setCoverFile(null);
-  };
+    setFullName(currentUser?.fullName || '')
+    setBio(currentUser?.bio || '')
+    setAvatarPreview(currentUser?.profilePicture || '')
+    setCoverPreview(currentUser?.coverPicture || '')
+    setAvatarFile(null)
+    setCoverFile(null)
+  }
 
-  const handleAvatarChange = (files) => {
+  const handleAvatarChange = files => {
     if (files.length > 0) {
-      setAvatarFile(files[0].file);
-      setAvatarPreview(files[0].preview);
+      setAvatarFile(files[0].file)
+      setAvatarPreview(files[0].preview)
     }
-  };
+  }
 
-  const handleCoverChange = (files) => {
+  const handleCoverChange = files => {
     if (files.length > 0) {
-      setCoverFile(files[0].file);
-      setCoverPreview(files[0].preview);
+      setCoverFile(files[0].file)
+      setCoverPreview(files[0].preview)
     }
-  };
+  }
 
   const handleSubmit = async () => {
     try {
-      setIsSaving(true);
+      setIsSaving(true)
 
-      let profilePicture = currentUser?.profilePicture;
-      let coverPicture = currentUser?.coverPicture;
+      let profilePicture = currentUser?.profilePicture
+      let coverPicture = currentUser?.coverPicture
 
       if (avatarFile) {
-        profilePicture = await uploadImage(avatarFile);
+        profilePicture = await uploadImage(avatarFile)
       }
 
       if (coverFile) {
-        coverPicture = await uploadImage(coverFile);
+        coverPicture = await uploadImage(coverFile)
       }
 
-      const updatedUser = await updateProfile({
+      await updateProfile({
         fullName,
         bio,
         profilePicture,
         coverPicture,
-      });
+      })
 
-      setUser(updatedUser);
-      toast.success('Profile updated successfully');
-      closeEditProfileModal();
-      resetForm();
+      // re-fetch the authoritative profile so any server-side normalization (timestamps, urls)
+      // is reflected immediately in the app state and image cache-busting works reliably
+      const fresh = await getCurrentProfile()
+      // Append cache-busting query param to image URLs so browser reloads them immediately
+      const appendCacheBuster = url => {
+        if (!url) return url
+        try {
+          const u = new URL(url)
+          u.searchParams.set('v', Date.now().toString())
+          return u.toString()
+        } catch (err) {
+          void err
+          // If URL constructor fails (relative URL), fallback to simple append
+          return url.includes('?') ? `${url}&v=${Date.now()}` : `${url}?v=${Date.now()}`
+        }
+      }
+
+      const freshWithBust = {
+        ...fresh,
+        profilePicture: appendCacheBuster(fresh.profilePicture),
+        coverPicture: appendCacheBuster(fresh.coverPicture),
+      }
+
+      setUser(freshWithBust)
+      // Notify pages that rely on fetched profile data to update (e.g., Profile page)
+      try {
+        window.dispatchEvent(new CustomEvent('profile-updated', { detail: freshWithBust }))
+      } catch (err) {
+        void err
+      }
+      toast.success('Profile updated successfully')
+      closeEditProfileModal()
+      resetForm()
     } catch (error) {
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.message || 'Failed to update profile')
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
-  if (!isRendered) return null;
+  if (!isRendered) return null
 
   return (
     <div className="fixed inset-0 z-[110] flex items-end justify-center sm:items-center sm:p-6">
@@ -156,8 +196,8 @@ const EditProfileModal = () => {
           <ProfileForm
             fullName={fullName}
             bio={bio}
-            onFullNameChange={(value) => setFullName(value)}
-            onBioChange={(value) => setBio(value)}
+            onFullNameChange={value => setFullName(value)}
+            onBioChange={value => setBio(value)}
           />
         </div>
 
@@ -188,7 +228,7 @@ const EditProfileModal = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EditProfileModal;
+export default EditProfileModal

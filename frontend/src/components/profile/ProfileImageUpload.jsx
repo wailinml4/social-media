@@ -1,15 +1,9 @@
-import React from 'react';
-import { Camera } from 'lucide-react';
-import Avatar from '../ui/Avatar';
-import FileUploader from '../ui/FileUploader';
+import React from 'react'
+import { Camera } from 'lucide-react'
+import Avatar from '../ui/Avatar'
+import FileUploader from '../ui/FileUploader'
 
-const ProfileImageUpload = ({
-  avatarSrc,
-  coverSrc,
-  userName,
-  onAvatarChange,
-  onCoverChange,
-}) => {
+const ProfileImageUpload = ({ avatarSrc, coverSrc, userName, onAvatarChange, onCoverChange }) => {
   return (
     <>
       {/* Cover Image */}
@@ -26,16 +20,13 @@ const ProfileImageUpload = ({
           onFilesChange={onCoverChange}
           className="absolute right-3 top-3"
         >
-          {({ handleClick }) => (
-            <button
-              type="button"
-              onClick={handleClick}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
-              aria-label="Change cover photo"
-            >
-              <Camera className="h-4 w-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
+            aria-label="Change cover photo"
+          >
+            <Camera className="h-4 w-4" />
+          </button>
         </FileUploader>
       </div>
 
@@ -54,21 +45,18 @@ const ProfileImageUpload = ({
             onFilesChange={onAvatarChange}
             className="absolute bottom-1 right-1"
           >
-            {({ handleClick }) => (
-              <button
-                type="button"
-                onClick={handleClick}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
-                aria-label="Change avatar"
-              >
-                <Camera className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <button
+              type="button"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-200 hover:bg-black/70"
+              aria-label="Change avatar"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
           </FileUploader>
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default ProfileImageUpload;
+export default ProfileImageUpload

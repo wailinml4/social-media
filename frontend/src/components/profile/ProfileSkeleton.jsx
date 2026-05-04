@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const ProfileSkeleton = () => {
   return (
@@ -30,8 +30,11 @@ const ProfileSkeleton = () => {
 
         {/* Stats Section */}
         <div className="grid grid-cols-4 gap-2 md:gap-4 mb-8 px-4 md:px-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.03] border border-white/10 animate-pulse">
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.03] border border-white/10 animate-pulse"
+            >
               <div className="h-6 bg-white/5 rounded w-8 mb-2" />
               <div className="h-3 bg-white/5 rounded w-12" />
             </div>
@@ -41,7 +44,7 @@ const ProfileSkeleton = () => {
         {/* Tabs */}
         <div className="px-4 md:px-6 mb-6">
           <div className="flex gap-6 border-b border-white/10 pb-3">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-4 bg-white/5 rounded w-16 animate-pulse" />
             ))}
           </div>
@@ -49,13 +52,13 @@ const ProfileSkeleton = () => {
 
         {/* Post Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4 px-4 pb-10">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <div key={i} className="aspect-square bg-white/5 rounded-xl animate-pulse" />
           ))}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ProfileSkeleton;
+export default ProfileSkeleton

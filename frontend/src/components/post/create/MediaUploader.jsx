@@ -1,17 +1,24 @@
-import React, { useRef } from 'react';
+import React from 'react'
 
-import { ImagePlus, Video, X } from 'lucide-react';
+import { ImagePlus, Video, X } from 'lucide-react'
 
-const MediaUploader = ({ mediaItems, onAddFiles, onRemoveMedia, isDragActive, onDragOver, onDragLeave, onDrop, fileInputRef }) => {
+const MediaUploader = ({
+  mediaItems,
+  onAddFiles,
+  onRemoveMedia,
+  isDragActive,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  fileInputRef,
+}) => {
   return (
     <div
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={`mt-4 rounded-2xl border transition-all duration-200 ${
-        isDragActive
-          ? 'border-primary/60 bg-primary/10'
-          : 'border-white/10 bg-surface'
+        isDragActive ? 'border-primary/60 bg-primary/10' : 'border-white/10 bg-surface'
       }`}
     >
       <input
@@ -20,7 +27,7 @@ const MediaUploader = ({ mediaItems, onAddFiles, onRemoveMedia, isDragActive, on
         multiple
         accept="image/*,video/*"
         className="hidden"
-        onChange={(e) => onAddFiles(e.target.files || [])}
+        onChange={e => onAddFiles(e.target.files || [])}
       />
 
       {mediaItems.length === 0 ? (
@@ -34,12 +41,14 @@ const MediaUploader = ({ mediaItems, onAddFiles, onRemoveMedia, isDragActive, on
           </div>
           <div>
             <p className="text-sm font-medium text-white/88">Add photos or videos</p>
-            <p className="mt-0.5 text-xs text-white/38">Drag files here or choose from your library.</p>
+            <p className="mt-0.5 text-xs text-white/38">
+              Drag files here or choose from your library.
+            </p>
           </div>
         </button>
       ) : (
         <div className="grid grid-cols-3 gap-2 p-2">
-          {mediaItems.map((item) => (
+          {mediaItems.map(item => (
             <div
               key={item.id}
               className="group relative aspect-square overflow-hidden rounded-2xl bg-white/6"
@@ -72,7 +81,7 @@ const MediaUploader = ({ mediaItems, onAddFiles, onRemoveMedia, isDragActive, on
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MediaUploader;
+export default MediaUploader

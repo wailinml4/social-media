@@ -1,332 +1,424 @@
-import React, { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
+import React, { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 
-import { X } from 'lucide-react';
+import { X } from 'lucide-react'
 
-import PostModalHeader from './PostModalHeader';
-import PostModalMedia from './PostModalMedia';
-import PostModalCaption from './PostModalCaption';
-import PostModalEngagement from './PostModalEngagement';
-import PostComments from '../comments/PostComments';
+import PostModalHeader from './PostModalHeader'
+import PostModalMedia from './PostModalMedia'
+import PostModalCaption from './PostModalCaption'
+import PostModalEngagement from './PostModalEngagement'
+import PostComments from '../comments/PostComments'
 
-import { useModal } from '../../../context/ModalContext';
-import { useAuth } from '../../../context/AuthContext';
-import { usePosts } from '../../../context/PostContext';
-import { getPostComments, createComment, updateComment, deleteComment, getCommentReplies } from '../../../services/commentService';
-import { useSimpleModalAnimation } from '../../../animations/useModalAnimation';
-import { likePost, unlikePost, checkLikeStatus } from '../../../services/likeService';
-import { bookmarkPost, unbookmarkPost, checkBookmarkStatus } from '../../../services/bookmarkService';
-import { followUser, unfollowUser, checkFollowStatus } from '../../../services/followService';
+import { useModal } from '../../../context/ModalContext'
+import { useAuth } from '../../../context/AuthContext'
+import { usePosts } from '../../../context/PostContext'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { getPostById } from '../../../services/postService'
+import {
+  getPostComments,
+  createComment,
+  updateComment,
+  deleteComment,
+  getCommentReplies,
+} from '../../../services/commentService'
+import { useSimpleModalAnimation } from '../../../animations/useModalAnimation'
+import { likePost, unlikePost, checkLikeStatus } from '../../../services/likeService'
+import {
+  bookmarkPost,
+  unbookmarkPost,
+  checkBookmarkStatus,
+} from '../../../services/bookmarkService'
+import { followUser, unfollowUser, checkFollowStatus } from '../../../services/followService'
 
 const PostModal = () => {
-  const { selectedPost: post, isPostModalOpen, closePostModal } = useModal();
-  const { user: currentUser } = useAuth();
-  const { deleteExistingPost, updateExistingPost } = usePosts();
-  const modalRef = useRef(null);
-  const overlayRef = useRef(null);
-  const contentRef = useRef(null);
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-  const [postComments, setPostComments] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLiking, setIsLiking] = useState(false);
-  const [isBookmarking, setIsBookmarking] = useState(false);
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [editContent, setEditContent] = useState('');
-  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
-  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const {
+    selectedPost: post,
+    isPostModalOpen,
+    closePostModal,
+    openShareModal,
+    openPostModal,
+  } = useModal()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const { deleteExistingPost, updateExistingPost, patchPostState } = usePosts()
+  const overlayRef = useRef(null)
+  const contentRef = useRef(null)
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [likesCount, setLikesCount] = useState(0)
+  const [postComments, setPostComments] = useState([])
+  const [isEditing, setIsEditing] = useState(false)
+  const [isLiking, setIsLiking] = useState(false)
+  const [isBookmarking, setIsBookmarking] = useState(false)
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [_isCheckingStatus, setIsCheckingStatus] = useState(false)
+  const [_isDeleting, setIsDeleting] = useState(false)
+  const [_isUpdating, setIsUpdating] = useState(false)
+  const [editContent, setEditContent] = useState('')
+  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false)
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false)
 
-  const isOwnPost = post?.author?._id === currentUser?._id;
+  const isOwnPost = post?.author?._id === currentUser?._id
 
   const handleClose = useSimpleModalAnimation(isPostModalOpen, {
     overlayRef,
     containerRef: contentRef,
     onClose: closePostModal,
-  });
+  })
 
   useEffect(() => {
     const fetchComments = async () => {
       if (post) {
         try {
-          setIsLoadingComments(true);
-          const result = await getPostComments(post._id);
-          
+          setIsLoadingComments(true)
+          const result = await getPostComments(post._id)
+
           // Load replies for each comment
           const commentsWithReplies = await Promise.all(
-            result.comments.map(async (comment) => {
+            result.comments.map(async comment => {
               try {
-                const repliesResult = await getCommentReplies(comment._id || comment.id);
+                const repliesResult = await getCommentReplies(comment._id || comment.id)
                 return {
                   ...comment,
-                  replies: repliesResult.replies || []
-                };
-              } catch (error) {
+                  replies: repliesResult.replies || [],
+                }
+              } catch (err) {
+                void err
                 // If loading replies fails, return comment with empty replies
                 return {
                   ...comment,
-                  replies: []
-                };
+                  replies: [],
+                }
               }
-            })
-          );
-          
-          setPostComments(commentsWithReplies);
-          setEditContent(post.content || '');
-          setLikesCount(post.likeCount || 0);
+            }),
+          )
+
+          setPostComments(commentsWithReplies)
+          setEditContent(post.description || post.content || '')
+          setLikesCount(post.likeCount || 0)
 
           // Check like and bookmark status from API
           if (currentUser) {
             try {
-              setIsCheckingStatus(true);
+              setIsCheckingStatus(true)
               const [isLiked, isBookmarked] = await Promise.all([
                 checkLikeStatus(post._id),
-                checkBookmarkStatus(post._id)
-              ]);
-              setLiked(isLiked);
-              setSaved(isBookmarked);
-            } catch (error) {
-              toast.error('Failed to check post status');
+                checkBookmarkStatus(post._id),
+              ])
+              setLiked(isLiked)
+              setSaved(isBookmarked)
+            } catch (err) {
+              console.error(err)
+              toast.error('Failed to check post status')
             } finally {
-              setIsCheckingStatus(false);
+              setIsCheckingStatus(false)
             }
 
             // Check follow status for post author
             if (!isOwnPost && post?.author?._id) {
               try {
-                const followStatus = await checkFollowStatus(post.author._id);
-                setIsFollowingAuthor(followStatus.data?.isFollowing || false);
-              } catch (error) {
-                toast.error('Failed to check follow status');
+                const followStatus = await checkFollowStatus(post.author._id)
+                setIsFollowingAuthor(followStatus.data?.isFollowing || false)
+              } catch (err) {
+                console.error(err)
+                toast.error('Failed to check follow status')
               }
             }
           }
-        } catch (error) {
-          toast.error('Failed to load comments');
+        } catch (err) {
+          console.error(err)
+          toast.error('Failed to load comments')
         } finally {
-          setIsLoadingComments(false);
+          setIsLoadingComments(false)
         }
       }
-    };
-    fetchComments();
-  }, [post, currentUser, isOwnPost]);
+    }
+    fetchComments()
+  }, [post, currentUser, isOwnPost])
+
+  // Open modal when directly navigating to /post/:postId
+  useEffect(() => {
+    const match = location.pathname.match(/^\/post\/([^/]+)/)
+    if (match) {
+      const postId = match[1]
+      if (!isPostModalOpen) {
+        // If selected post is not present or doesn't match, fetch it and open modal
+        if (!post || post._id !== postId) {
+          ;(async () => {
+            try {
+              const fetched = await getPostById(postId)
+              if (fetched) {
+                openPostModal(fetched)
+              } else {
+                toast.error('Post not found')
+                navigate(-1)
+              }
+            } catch (error) {
+              toast.error(error.message || 'Failed to load post')
+              navigate(-1)
+            }
+          })()
+        }
+      }
+    }
+  }, [location.pathname, isPostModalOpen, navigate, openPostModal, post])
+
+  // When modal closes, if URL contains /post/:id, go back
+  useEffect(() => {
+    if (!isPostModalOpen && location.pathname.startsWith('/post/')) {
+      try {
+        navigate(-1)
+      } catch (err) {
+        void err
+      }
+    }
+  }, [isPostModalOpen, location.pathname, navigate])
 
   // Handle ESC key
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') handleClose();
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [handleClose]);
-
+    const handleEsc = e => {
+      if (e.key === 'Escape') handleClose()
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [handleClose])
 
   const handleDeletePost = async () => {
     try {
-      setIsDeleting(true);
-      await deleteExistingPost(post._id);
-      toast.success('Post deleted successfully');
-      closePostModal();
+      setIsDeleting(true)
+      await deleteExistingPost(post._id)
+      toast.success('Post deleted successfully')
+      closePostModal()
     } catch (error) {
-      toast.error(error.message || 'Failed to delete post');
+      toast.error(error.message || 'Failed to delete post')
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleEditPost = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleSaveEdit = async () => {
     try {
-      setIsUpdating(true);
-      await updateExistingPost(post._id, { content: editContent });
-      toast.success('Post updated successfully');
-      setIsEditing(false);
+      setIsUpdating(true)
+      await updateExistingPost(post._id, { description: editContent })
+      toast.success('Post updated successfully')
+      setIsEditing(false)
     } catch (error) {
-      toast.error(error.message || 'Failed to update post');
+      toast.error(error.message || 'Failed to update post')
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
   const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditContent(post.content || '');
-  };
+    setIsEditing(false)
+    setEditContent(post.content || '')
+  }
 
   const handleLike = async () => {
-    if (!post || isLiking) return;
+    if (!post || isLiking) return
 
     try {
-      setIsLiking(true);
+      setIsLiking(true)
+      let newLiked
+      let newCount
+
       if (liked) {
-        await unlikePost(post._id);
-        setLiked(false);
-        setLikesCount(prev => Math.max(0, prev - 1));
+        await unlikePost(post._id)
+        newLiked = false
+        newCount = Math.max(0, likesCount - 1)
+        setLiked(false)
+        setLikesCount(newCount)
       } else {
-        await likePost(post._id);
-        setLiked(true);
-        setLikesCount(prev => prev + 1);
-        toast.success('Post liked');
+        await likePost(post._id)
+        newLiked = true
+        newCount = likesCount + 1
+        setLiked(true)
+        setLikesCount(newCount)
+        toast.success('Post liked')
       }
+
+      syncLikeState(newLiked, newCount)
     } catch (error) {
-      toast.error(error.message || 'Failed to update like');
-      setLiked(!liked);
-      setLikesCount(prev => liked ? prev + 1 : prev - 1);
+      toast.error(error.message || 'Failed to update like')
+      setLiked(!liked)
+      setLikesCount(prev => (liked ? prev + 1 : prev - 1))
     } finally {
-      setIsLiking(false);
+      setIsLiking(false)
     }
-  };
+  }
+
+  const syncLikeState = (newLiked, newCount) => {
+    if (!post) return
+    patchPostState(post._id, { likeCount: newCount, isLiked: newLiked })
+  }
+
+  const handleShare = () => {
+    if (!post) return
+    openShareModal(post)
+  }
 
   const handleSave = async () => {
-    if (!post || isBookmarking) return;
+    if (!post || isBookmarking) return
 
     try {
-      setIsBookmarking(true);
+      setIsBookmarking(true)
       if (saved) {
-        await unbookmarkPost(post._id);
-        setSaved(false);
+        await unbookmarkPost(post._id)
+        setSaved(false)
+        patchPostState(post._id, { isBookmarked: false })
       } else {
-        await bookmarkPost(post._id);
-        setSaved(true);
-        toast.success('Post bookmarked');
+        await bookmarkPost(post._id)
+        setSaved(true)
+        patchPostState(post._id, { isBookmarked: true })
+        toast.success('Post bookmarked')
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to update bookmark');
-      setSaved(!saved);
+      toast.error(error.message || 'Failed to update bookmark')
+      setSaved(!saved)
     } finally {
-      setIsBookmarking(false);
+      setIsBookmarking(false)
     }
-  };
+  }
 
-  const handleAddComment = async (text) => {
-    if (!post || !text.trim()) return;
+  const handleAddComment = async text => {
+    if (!post || !text.trim()) return
 
     try {
-      const newComment = await createComment(post._id, text);
-      setPostComments(prev => [newComment, ...prev]);
+      const newComment = await createComment(post._id, text)
+      setPostComments(prev => [newComment, ...prev])
       // Update post comment count in state
       if (post) {
-        post.commentCount = (post.commentCount || 0) + 1;
+        const newCount = (post.commentCount || 0) + 1
+        patchPostState(post._id, { commentCount: newCount })
       }
-      toast.success('Comment added successfully');
+      toast.success('Comment added successfully')
     } catch (error) {
-      toast.error(error.message || 'Failed to add comment');
+      toast.error(error.message || 'Failed to add comment')
     }
-  };
+  }
 
   const handleReply = async (parentId, text) => {
-    if (!post || !text.trim()) return;
+    if (!post || !text.trim()) return
 
     try {
-      const newReply = await createComment(post._id, text, parentId);
+      const newReply = await createComment(post._id, text, parentId)
       // Add reply to the parent comment's replies array
-      setPostComments(prev => prev.map(comment => {
-        if (comment._id === parentId || comment.id === parentId) {
-          return {
-            ...comment,
-            replies: [...(comment.replies || []), newReply]
-          };
-        }
-        return comment;
-      }));
+      setPostComments(prev =>
+        prev.map(comment => {
+          if (comment._id === parentId || comment.id === parentId) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), newReply],
+            }
+          }
+          return comment
+        }),
+      )
       // Update post comment count in state
       if (post) {
-        post.commentCount = (post.commentCount || 0) + 1;
+        const newCount = (post.commentCount || 0) + 1
+        patchPostState(post._id, { commentCount: newCount })
       }
-      toast.success('Reply added successfully');
+      toast.success('Reply added successfully')
     } catch (error) {
-      toast.error(error.message || 'Failed to add reply');
+      toast.error(error.message || 'Failed to add reply')
     }
-  };
+  }
 
   const handleEditComment = async (commentId, newText) => {
     try {
-      const updatedComment = await updateComment(commentId, newText);
+      await updateComment(commentId, newText)
       // Update comment in state
-      setPostComments(prev => prev.map(comment => {
-        if (comment._id === commentId || comment.id === commentId) {
-          return { ...comment, text: newText };
-        }
-        // Also check in replies
-        if (comment.replies) {
-          return {
-            ...comment,
-            replies: comment.replies.map(reply => 
-              (reply._id === commentId || reply.id === commentId) 
-                ? { ...reply, text: newText }
-                : reply
-            )
-          };
-        }
-        return comment;
-      }));
-      toast.success('Comment updated successfully');
+      setPostComments(prev =>
+        prev.map(comment => {
+          if (comment._id === commentId || comment.id === commentId) {
+            return { ...comment, text: newText }
+          }
+          // Also check in replies
+          if (comment.replies) {
+            return {
+              ...comment,
+              replies: comment.replies.map(reply =>
+                reply._id === commentId || reply.id === commentId
+                  ? { ...reply, text: newText }
+                  : reply,
+              ),
+            }
+          }
+          return comment
+        }),
+      )
+      toast.success('Comment updated successfully')
     } catch (error) {
-      toast.error(error.message || 'Failed to update comment');
+      toast.error(error.message || 'Failed to update comment')
     }
-  };
+  }
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async commentId => {
     try {
-      await deleteComment(commentId);
-      
+      await deleteComment(commentId)
+
       // Remove comment from state
-      setPostComments(prev => prev.map(comment => {
-        // If this is the comment being deleted, remove it
-        if (comment._id === commentId || comment.id === commentId) {
-          return null;
-        }
-        // If this is a parent comment, remove the deleted reply from its replies
-        if (comment.replies) {
-          return {
-            ...comment,
-            replies: comment.replies.filter(reply => 
-              reply._id !== commentId && reply.id !== commentId
-            )
-          };
-        }
-        return comment;
-      }).filter(comment => comment !== null));
-      
+      setPostComments(prev =>
+        prev
+          .map(comment => {
+            // If this is the comment being deleted, remove it
+            if (comment._id === commentId || comment.id === commentId) {
+              return null
+            }
+            // If this is a parent comment, remove the deleted reply from its replies
+            if (comment.replies) {
+              return {
+                ...comment,
+                replies: comment.replies.filter(
+                  reply => reply._id !== commentId && reply.id !== commentId,
+                ),
+              }
+            }
+            return comment
+          })
+          .filter(comment => comment !== null),
+      )
+
       // Update post comment count in state
       if (post) {
-        post.commentCount = Math.max(0, (post.commentCount || 0) - 1);
+        const newCount = Math.max(0, (post.commentCount || 0) - 1)
+        patchPostState(post._id, { commentCount: newCount })
       }
-      
-      toast.success('Comment deleted successfully');
+
+      toast.success('Comment deleted successfully')
     } catch (error) {
-      toast.error(error.message || 'Failed to delete comment');
+      toast.error(error.message || 'Failed to delete comment')
     }
-  };
+  }
 
   const handleFollowAuthor = async () => {
-    if (!post?.author?._id) return;
+    if (!post?.author?._id) return
 
     try {
-      setIsFollowingLoading(true);
+      setIsFollowingLoading(true)
       if (isFollowingAuthor) {
-        await unfollowUser(post.author._id);
-        setIsFollowingAuthor(false);
-        toast.success('Unfollowed successfully');
+        await unfollowUser(post.author._id)
+        setIsFollowingAuthor(false)
+        toast.success('Unfollowed successfully')
       } else {
-        await followUser(post.author._id);
-        setIsFollowingAuthor(true);
-        toast.success('Followed successfully');
+        await followUser(post.author._id)
+        setIsFollowingAuthor(true)
+        toast.success('Followed successfully')
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to update follow status');
+      toast.error(error.message || 'Failed to update follow status')
     } finally {
-      setIsFollowingLoading(false);
+      setIsFollowingLoading(false)
     }
-  };
+  }
 
-  if (!post && !isPostModalOpen) return null;
+  if (!post && !isPostModalOpen) return null
 
   return (
     <div
@@ -334,10 +426,7 @@ const PostModal = () => {
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 opacity-0 pointer-events-none"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-xl"
-        onClick={handleClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" onClick={handleClose} />
 
       {/* Modal Content */}
       <div
@@ -382,12 +471,14 @@ const PostModal = () => {
               isOwnPost={isOwnPost}
               likesCount={likesCount}
               commentsCount={post?.commentCount || postComments.length}
+              shareCount={post?.shareCount || 0}
               liked={liked}
               saved={saved}
               isLiking={isLiking}
               isBookmarking={isBookmarking}
               onLike={handleLike}
               onBookmark={handleSave}
+              onShare={handleShare}
               onDelete={handleDeletePost}
               onEdit={handleEditPost}
             />
@@ -407,12 +498,16 @@ const PostModal = () => {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
+      `,
+        }}
+      />
     </div>
-  );
-};
+  )
+}
 
-export default PostModal;
+export default PostModal

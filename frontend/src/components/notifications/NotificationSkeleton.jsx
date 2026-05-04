@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const NotificationSkeleton = () => {
   return (
@@ -26,7 +26,7 @@ const NotificationSkeleton = () => {
         <div className="h-3 bg-white/5 rounded w-2/3"></div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default NotificationSkeleton;
+export default NotificationSkeleton

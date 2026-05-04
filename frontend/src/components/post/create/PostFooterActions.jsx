@@ -1,13 +1,13 @@
-import React from 'react';
-import { ImagePlus, MapPin, SmilePlus } from 'lucide-react';
+import React from 'react'
+import { ImagePlus, MapPin, SmilePlus } from 'lucide-react'
 
-const PostFooterActions = ({ 
-  onMediaClick, 
-  onEmojiClick, 
-  onLocationClick, 
-  onPostClick, 
+const PostFooterActions = ({
+  onMediaClick,
+  onEmojiClick,
+  onLocationClick,
+  onPostClick,
   hasPostContent,
-  isPosting = false
+  isPosting = false,
 }) => {
   return (
     <div className="relative border-t border-white/5 bg-bg-dark px-4 py-3 sm:px-5">
@@ -44,16 +44,14 @@ const PostFooterActions = ({
           onClick={onPostClick}
           disabled={!hasPostContent || isPosting}
           className={`inline-flex min-w-[92px] items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-            hasPostContent
-              ? 'bg-white text-black hover:bg-white/92'
-              : 'bg-white/8 text-white/28'
+            hasPostContent ? 'bg-white text-black hover:bg-white/92' : 'bg-white/8 text-white/28'
           } ${isPosting ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           {isPosting ? 'Posting...' : 'Post'}
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default PostFooterActions;
+export default PostFooterActions

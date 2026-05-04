@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const ChatListSkeleton = () => {
   return (
@@ -22,7 +22,7 @@ const ChatListSkeleton = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ChatListSkeleton;
+export default ChatListSkeleton

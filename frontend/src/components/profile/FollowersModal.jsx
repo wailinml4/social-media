@@ -1,128 +1,143 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useModal } from '../../context/ModalContext';
-import { useModalAnimation } from '../../animations/useModalAnimation';
-import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
-import UserList from './UserList';
-import { getFollowers, getFollowees, getFriends, checkFollowStatus, followUser, unfollowUser } from '../../services/followService';
+import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useModal } from '../../context/ModalContext'
+import { useModalAnimation } from '../../animations/useModalAnimation'
+import { useAuth } from '../../context/AuthContext'
+import toast from 'react-hot-toast'
+import UserList from './UserList'
+import {
+  getFollowers,
+  getFollowees,
+  getFriends,
+  checkFollowStatus,
+  followUser,
+  unfollowUser,
+} from '../../services/followService'
 
 const FollowersModal = () => {
-  const { isFollowersModalOpen, followersModalType, followersModalUserId, closeFollowersModal } = useModal();
-  const { user: currentUser } = useAuth();
-  const navigate = useNavigate();
-  const overlayRef = useRef(null);
-  const modalRef = useRef(null);
-  const listRef = useRef(null);
+  const { isFollowersModalOpen, followersModalType, followersModalUserId, closeFollowersModal } =
+    useModal()
+  const { user: currentUser } = useAuth()
+  const navigate = useNavigate()
+  const overlayRef = useRef(null)
+  const modalRef = useRef(null)
 
   const { isRendered } = useModalAnimation(isFollowersModalOpen, {
     overlayRef,
     modalRef,
-  });
+  })
 
-  const title = followersModalType === 'followers' ? 'Followers' :
-                followersModalType === 'following' ? 'Following' : 'Friends';
+  const title =
+    followersModalType === 'followers'
+      ? 'Followers'
+      : followersModalType === 'following'
+        ? 'Following'
+        : 'Friends'
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [followingStatus, setFollowingStatus] = useState({});
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [followingStatus, setFollowingStatus] = useState({})
 
-  const fetchUsers = async (pageToFetch = 1) => {
-    try {
-      setLoading(true);
-      let response;
-      if (followersModalType === 'followers') {
-        response = await getFollowers(followersModalUserId, pageToFetch, 20);
-      } else if (followersModalType === 'following') {
-        response = await getFollowees(followersModalUserId, pageToFetch, 20);
-      } else if (followersModalType === 'friends') {
-        response = await getFriends(followersModalUserId, pageToFetch, 20);
-      } else {
-        response = { data: [] };
-      }
-
-      const payload = response.data ?? response
-      const result = payload.data ?? payload
-      const newUsers = result.followers || result.followees || result.friends || [];
-
-      if (pageToFetch === 1) {
-        setUsers(newUsers);
-      } else {
-        setUsers(prev => [...prev, ...newUsers]);
-      }
-
-      setPage(pageToFetch);
-      setHasMore(newUsers.length === 20);
-
-      // Fetch follow status for users
-      const statusMap = { ...followingStatus };
-      for (const user of newUsers) {
-        try {
-          const statusRes = await checkFollowStatus(user._id);
-          statusMap[user._id] = statusRes.data?.isFollowing || false;
-        } catch (error) {
-          statusMap[user._id] = false;
+  const fetchUsers = useCallback(
+    async (pageToFetch = 1) => {
+      try {
+        setLoading(true)
+        let response
+        if (followersModalType === 'followers') {
+          response = await getFollowers(followersModalUserId, pageToFetch, 20)
+        } else if (followersModalType === 'following') {
+          response = await getFollowees(followersModalUserId, pageToFetch, 20)
+        } else if (followersModalType === 'friends') {
+          response = await getFriends(followersModalUserId, pageToFetch, 20)
+        } else {
+          response = { data: [] }
         }
+
+        const payload = response.data ?? response
+        const result = payload.data ?? payload
+        const newUsers = result.followers || result.followees || result.friends || []
+
+        if (pageToFetch === 1) {
+          setUsers(newUsers)
+        } else {
+          setUsers(prev => [...prev, ...newUsers])
+        }
+
+        setPage(pageToFetch)
+        setHasMore(newUsers.length === 20)
+
+        // Fetch follow status for users
+        const statusMap = { ...followingStatus }
+        for (const user of newUsers) {
+          try {
+            const statusRes = await checkFollowStatus(user._id)
+            statusMap[user._id] = statusRes.data?.isFollowing || false
+          } catch (err) {
+            void err
+            statusMap[user._id] = false
+          }
+        }
+        setFollowingStatus(statusMap)
+      } catch (error) {
+        toast.error(error.message || 'Failed to load users')
+      } finally {
+        setLoading(false)
       }
-      setFollowingStatus(statusMap);
-    } catch (error) {
-      toast.error(error.message || 'Failed to load users');
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [followersModalType, followersModalUserId, followingStatus],
+  )
 
   const loadMore = () => {
     if (!loading && hasMore) {
-      fetchUsers(page + 1);
+      fetchUsers(page + 1)
     }
-  };
+  }
 
-  const handleFollow = async (targetUserId) => {
+  const handleFollow = async targetUserId => {
     try {
       if (followingStatus[targetUserId]) {
-        await unfollowUser(targetUserId);
-        setFollowingStatus(prev => ({ ...prev, [targetUserId]: false }));
-        toast.success('Unfollowed successfully');
+        await unfollowUser(targetUserId)
+        setFollowingStatus(prev => ({ ...prev, [targetUserId]: false }))
+        toast.success('Unfollowed successfully')
       } else {
-        await followUser(targetUserId);
-        setFollowingStatus(prev => ({ ...prev, [targetUserId]: true }));
-        toast.success('Followed successfully');
+        await followUser(targetUserId)
+        setFollowingStatus(prev => ({ ...prev, [targetUserId]: true }))
+        toast.success('Followed successfully')
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to update follow status');
+      toast.error(error.message || 'Failed to update follow status')
     }
-  };
+  }
 
   useEffect(() => {
     if (followersModalUserId && followersModalType) {
-      setPage(1);
-      fetchUsers(1);
+      setTimeout(() => setPage(1), 0)
+      setTimeout(() => fetchUsers(1), 0)
     }
-  }, [followersModalUserId, followersModalType]);
+  }, [followersModalUserId, followersModalType, fetchUsers])
 
   useEffect(() => {
-    if (!isFollowersModalOpen) return undefined;
+    if (!isFollowersModalOpen) return undefined
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        closeFollowersModal();
+        closeFollowersModal()
       }
-    };
+    }
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isFollowersModalOpen, closeFollowersModal]);
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isFollowersModalOpen, closeFollowersModal])
 
-  if (!isRendered) return null;
+  if (!isRendered) return null
 
   return (
     <div className="fixed inset-0 z-[110] flex items-end justify-center sm:items-center sm:p-6">
@@ -167,7 +182,9 @@ const FollowersModal = () => {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <p className="text-sm text-gray-400">
-                  {followersModalType === 'friends' ? 'No friends yet' : `No ${title.toLowerCase()} yet`}
+                  {followersModalType === 'friends'
+                    ? 'No friends yet'
+                    : `No ${title.toLowerCase()} yet`}
                 </p>
               </div>
             </div>
@@ -177,9 +194,9 @@ const FollowersModal = () => {
               currentUser={currentUser}
               followingStatus={followingStatus}
               onFollow={handleFollow}
-              onUserSelect={(userId) => {
-                closeFollowersModal();
-                navigate(`/profile/${userId}`);
+              onUserSelect={userId => {
+                closeFollowersModal()
+                navigate(`/profile/${userId}`)
               }}
             />
           )}
@@ -199,7 +216,7 @@ const FollowersModal = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default FollowersModal;
+export default FollowersModal
