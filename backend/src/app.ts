@@ -76,7 +76,7 @@ app.use(errorHandler)
 if (env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '/frontend/dist')))
 
-  app.get('(.*)', (_req: Request, res: Response) => {
+  app.get(/.*/, (_req: Request, res: Response) => {
     res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'))
   })
 }
