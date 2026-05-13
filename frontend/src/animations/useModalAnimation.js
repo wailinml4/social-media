@@ -10,10 +10,7 @@ import gsap from 'gsap'
  * @param {Function} options.onCloseComplete - Callback when close animation completes
  * @param {Object} options.config - Custom animation config
  */
-export const useModalAnimation = (
-  isOpen,
-  { overlayRef, modalRef, onCloseComplete, config = {} },
-) => {
+export const useModalAnimation = (isOpen, { overlayRef, modalRef, onCloseComplete, config = {} }) => {
   const closeTweenRef = useRef(null)
   const isRenderedRef = useRef(false)
   const hasAnimatedOpenRef = useRef(false)
@@ -25,14 +22,7 @@ export const useModalAnimation = (
     onCloseCompleteRef.current = onCloseComplete
   }, [onCloseComplete])
 
-  const {
-    openDuration = 0.38,
-    closeDuration = 0.18,
-    openScale = 0.95,
-    closeScale = 0.96,
-    yOffset = 10,
-    closeYOffset = 8,
-  } = config
+  const { openDuration = 0.38, closeDuration = 0.18, openScale = 0.95, closeScale = 0.96, yOffset = 10, closeYOffset = 8 } = config
 
   useEffect(() => {
     if (isOpen) {
@@ -130,17 +120,7 @@ export const useModalAnimation = (
     return () => {
       closeTweenRef.current?.kill()
     }
-  }, [
-    isOpen,
-    openDuration,
-    closeDuration,
-    openScale,
-    closeScale,
-    yOffset,
-    closeYOffset,
-    overlayRef,
-    modalRef,
-  ])
+  }, [isOpen, openDuration, closeDuration, openScale, closeScale, yOffset, closeYOffset, overlayRef, modalRef])
 
   return { isRendered }
 }
@@ -167,12 +147,7 @@ export const useSimpleModalAnimation = (isOpen, { overlayRef, containerRef, onCl
         const tl = gsap.timeline()
         tl.set(overlayEl, { pointerEvents: 'auto' })
         tl.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' })
-        tl.fromTo(
-          containerEl,
-          { scale: 0.92, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.35, ease: 'power3.out' },
-          '-=0.15',
-        )
+        tl.fromTo(containerEl, { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'power3.out' }, '-=0.15')
       }, 10)
 
       return () => {

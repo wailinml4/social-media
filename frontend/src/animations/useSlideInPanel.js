@@ -8,13 +8,7 @@ import gsap from 'gsap'
  * @param {Object} options - Animation options
  */
 export const useSlideInPanel = (panelRef, triggerRef, options = {}) => {
-  const {
-    closeDelay = 140,
-    openDuration = 0.6,
-    closeDuration = 0.42,
-    staggerOpen = 0.06,
-    staggerClose = 0.03,
-  } = options
+  const { closeDelay = 140, openDuration = 0.6, closeDuration = 0.42, staggerOpen = 0.06, staggerClose = 0.03 } = options
 
   const closeTimerRef = useRef(null)
   const isOpenRef = useRef(false)

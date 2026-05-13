@@ -30,11 +30,7 @@ export const useHoverScale = (options = {}) => {
  * Hook for background color hover animation
  */
 export const useHoverBackground = (options = {}) => {
-  const {
-    enterColor = 'rgba(255, 255, 255, 0.05)',
-    exitColor = 'transparent',
-    duration = 0.2,
-  } = options
+  const { enterColor = 'rgba(255, 255, 255, 0.05)', exitColor = 'transparent', duration = 0.2 } = options
 
   const handleMouseEnter = element => {
     if (element) {

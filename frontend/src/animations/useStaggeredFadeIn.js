@@ -9,15 +9,7 @@ import { useGSAP } from '@gsap/react'
  * @param {Object} options - Animation options
  */
 export const useStaggeredFadeIn = (shouldAnimate, selector, options = {}) => {
-  const {
-    y = 30,
-    opacity = 0,
-    duration = 0.5,
-    stagger = 0.1,
-    ease = 'power2.out',
-    clearProps = 'all',
-    delay = 0,
-  } = options
+  const { y = 30, opacity = 0, duration = 0.5, stagger = 0.1, ease = 'power2.out', clearProps = 'all', delay = 0 } = options
 
   useGSAP(() => {
     if (!shouldAnimate) return
@@ -25,11 +17,7 @@ export const useStaggeredFadeIn = (shouldAnimate, selector, options = {}) => {
     const elements = document.querySelectorAll(selector)
     if (elements.length === 0) return
 
-    gsap.fromTo(
-      selector,
-      { y, opacity },
-      { y: 0, opacity: 1, duration, stagger, ease, clearProps, delay },
-    )
+    gsap.fromTo(selector, { y, opacity }, { y: 0, opacity: 1, duration, stagger, ease, clearProps, delay })
 
     // Remove class after animation to prevent re-animation
     setTimeout(
@@ -51,29 +39,15 @@ export const useProfileAnimation = (shouldAnimate, scope) => {
 
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
 
-      tl.fromTo(
-        '.profile-header-anim',
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1 },
-      )
+      tl.fromTo('.profile-header-anim', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1 })
         .fromTo(
           '.stat-card-anim',
           { opacity: 0, scale: 0.8 },
           { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.7)' },
           '-=0.4',
         )
-        .fromTo(
-          '.tab-anim',
-          { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 0.4, stagger: 0.1 },
-          '-=0.2',
-        )
-        .fromTo(
-          '.content-grid-anim',
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6, stagger: 0.05 },
-          '-=0.2',
-        )
+        .fromTo('.tab-anim', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1 }, '-=0.2')
+        .fromTo('.content-grid-anim', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05 }, '-=0.2')
     },
     { scope, dependencies: [shouldAnimate] },
   )

@@ -1,0 +1,57 @@
+import React from 'react'
+import type { ChangeEvent } from 'react'
+
+interface PostData {
+  description?: string
+  content?: string
+  time?: string
+}
+
+interface PostModalCaptionProps {
+  post: PostData
+  isEditing: boolean
+  editContent: string
+  onEditContentChange: (value: string) => void
+  onSaveEdit: () => void
+  onCancelEdit: () => void
+}
+
+const PostModalCaption = ({ post, isEditing, editContent, onEditContentChange, onSaveEdit, onCancelEdit }: PostModalCaptionProps) => {
+  return (
+    <div className="modal-detail-item">
+      {isEditing ? (
+        <div className="space-y-3">
+          <textarea
+            value={editContent}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onEditContentChange(e.target.value)}
+            placeholder="What's on your mind?"
+            rows={4}
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm resize-none focus:outline-none focus:border-white/20"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={onSaveEdit}
+              className="px-4 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Save
+            </button>
+            <button
+              onClick={onCancelEdit}
+              className="px-4 py-2 bg-white/10 text-white rounded-full text-sm font-medium hover:bg-white/20 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="text-white text-[14px] leading-relaxed mb-2">{post?.description || post?.content}</p>
+
+          <span className="text-text-dim text-[12px]">{post?.time}</span>
+        </>
+      )}
+    </div>
+  )
+}
+
+export default PostModalCaption
