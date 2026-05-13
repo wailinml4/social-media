@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <style>
+      .bg { fill: #f2f2f2; }
+      .sil { fill: #bdbdbd; }
+    </style>
+  </defs>
+  <rect width="128" height="128" rx="32" class="bg" />
+  <g transform="translate(24,24)">
+    <circle cx="40" cy="28" r="20" class="sil" />
+    <path d="M4 88c0-20 24-32 36-32s36 12 36 32v4H4v-4z" class="sil" />
+  </g>
+</svg>

@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import gsap from 'gsap';
+// no React hooks required
+import gsap from 'gsap'
 
 /**
  * Hook for story avatar hover and click animations
@@ -9,15 +9,15 @@ import gsap from 'gsap';
 export const useStoryAvatarAnimation = (avatarRef, onClick) => {
   const handleMouseEnter = () => {
     if (avatarRef.current) {
-      gsap.to(avatarRef.current, { scale: 1.06, duration: 0.25, ease: 'power2.out' });
+      gsap.to(avatarRef.current, { scale: 1.06, duration: 0.25, ease: 'power2.out' })
     }
-  };
+  }
 
   const handleMouseLeave = () => {
     if (avatarRef.current) {
-      gsap.to(avatarRef.current, { scale: 1, duration: 0.2, ease: 'power2.inOut' });
+      gsap.to(avatarRef.current, { scale: 1, duration: 0.2, ease: 'power2.inOut' })
     }
-  };
+  }
 
   const handleClick = () => {
     if (avatarRef.current) {
@@ -26,12 +26,12 @@ export const useStoryAvatarAnimation = (avatarRef, onClick) => {
         duration: 0.1,
         ease: 'power2.in',
         onComplete: () => {
-          gsap.to(avatarRef.current, { scale: 1, duration: 0.15, ease: 'power2.out' });
-          onClick?.();
+          gsap.to(avatarRef.current, { scale: 1, duration: 0.15, ease: 'power2.out' })
+          onClick?.()
         },
-      });
+      })
     }
-  };
+  }
 
-  return { handleMouseEnter, handleMouseLeave, handleClick };
-};
+  return { handleMouseEnter, handleMouseLeave, handleClick }
+}
