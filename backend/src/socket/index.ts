@@ -12,13 +12,23 @@ import env from '../config/env.js'
 let io: Server
 
 export const initializeSocket = (server: HttpServer) => {
-  io = new Server(server, {
-    cors: {
-      origin: env.FRONTEND_URL || 'http://localhost:5173',
-      credentials: true,
-      methods: ['GET', 'POST'],
-    },
-  })
+  if (env.NODE_ENV === 'production') {
+    io = new Server(server, {
+      cors: {
+        origin: [env.FRONTEND_URL, /\.vercel\.app$/],
+        credentials: true,
+        methods: ['GET', 'POST'],
+      },
+    })
+  } else {
+    io = new Server(server, {
+      cors: {
+        origin: true,
+        credentials: true,
+        methods: ['GET', 'POST'],
+      },
+    })
+  }
 
   // Authentication middleware
   io.use(async (socket: Socket, next: (err?: Error) => void) => {

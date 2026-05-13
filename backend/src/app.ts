@@ -31,7 +31,7 @@ app.use(helmet())
 if (env.NODE_ENV === 'production') {
   app.use(
     cors({
-      origin: env.FRONTEND_URL,
+      origin: [env.FRONTEND_URL, /\.vercel\.app$/],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     }),
@@ -39,7 +39,7 @@ if (env.NODE_ENV === 'production') {
 } else {
   app.use(
     cors({
-      origin: env.FRONTEND_URL || true,
+      origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     }),
