@@ -91,9 +91,9 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
 export const logout = (req: Request, res: Response, next: NextFunction) => {
   try {
     res.clearCookie('token', {
-      httpOnly: true,
-      sameSite: 'Strict' as 'strict',
-      secure: (env.NODE_ENV || 'development') !== 'development',
+      secure: env.NODE_ENV === 'production',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
       maxAge: 0,
     })
 
