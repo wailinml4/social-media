@@ -1,4 +1,5 @@
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate, Link } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 
 import Home from './pages/Home.jsx'
@@ -46,9 +47,34 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return children
 }
 
+const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth()
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="w-full relative">
+      <div className="absolute left-4 top-4 z-50 pointer-events-auto">
+        <Link to="/" aria-label="Back to home" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+          <ChevronLeft className="w-4 h-4" strokeWidth={1.75} />
+          Back to home
+        </Link>
+      </div>
+      <div>{children}</div>
+    </div>
+  )
+}
+
 const App = () => {
   const location = useLocation()
-  const isLandingPage = location.pathname === '/landing'
+  const { isAuthenticated, isCheckingAuth } = useAuth()
+  const isLandingPage = location.pathname === '/landing' || (location.pathname === '/' && !isAuthenticated)
   const isAuthPage =
     ['/login', '/signup', '/forgot-password', '/verify-email'].includes(location.pathname) ||
     location.pathname.startsWith('/reset-password')
@@ -56,6 +82,14 @@ const App = () => {
   const isMessagesPage = location.pathname.startsWith('/messages')
   const isProfilePage = location.pathname.startsWith('/profile')
   const isExplorePage = location.pathname.startsWith('/explore')
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
 
   return (
     <ModalProvider>
@@ -80,21 +114,14 @@ const App = () => {
           >
             <main className={isFullWidthPage ? '' : 'flex-1 w-full'}>
               <Routes>
-                <Route path="/landing" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/reset-password-success" element={<ResetPasswordSuccess />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Home />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/landing" element={<AuthRedirect><AuthLayout><Landing /></AuthLayout></AuthRedirect>} />
+                <Route path="/login" element={<AuthRedirect><AuthLayout><Login /></AuthLayout></AuthRedirect>} />
+                <Route path="/signup" element={<AuthRedirect><AuthLayout><SignUp /></AuthLayout></AuthRedirect>} />
+                <Route path="/forgot-password" element={<AuthRedirect><AuthLayout><ForgotPassword /></AuthLayout></AuthRedirect>} />
+                <Route path="/reset-password/:token" element={<AuthRedirect><AuthLayout><ResetPassword /></AuthLayout></AuthRedirect>} />
+                <Route path="/reset-password-success" element={<AuthRedirect><AuthLayout><ResetPasswordSuccess /></AuthLayout></AuthRedirect>} />
+                <Route path="/verify-email" element={<AuthRedirect><AuthLayout><VerifyEmail /></AuthLayout></AuthRedirect>} />
+                <Route path="/" element={isAuthenticated ? (<ProtectedRoute><Home /></ProtectedRoute>) : (<Landing />)} />
                 <Route
                   path="/messages"
                   element={
