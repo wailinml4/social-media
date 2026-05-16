@@ -129,7 +129,7 @@ const Sidebar = () => {
   return (
     <aside className="sticky top-0 h-screen shrink-0 z-50 flex overflow-visible" style={{ width: sidebarWidth }}>
       <div className="h-full w-full px-4 py-5">
-        <div className="flex h-full w-full flex-col rounded-[36px] border border-white/10 bg-[#050505]/90 shadow-[0_24px_80px_rgba(0,0,0,0.27)] backdrop-blur-xl px-4 py-5 gap-5">
+        <div className="spatial-panel flex h-full w-full flex-col px-4 py-5 gap-5">
           {/* Logo */}
           <Link
             to="/"

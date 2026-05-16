@@ -18,10 +18,10 @@ const Tabs = ({ tabs, activeTab, onTabChange, className = '' }: TabsProps) => {
   const activeIndex = tabs.findIndex(t => t.id === activeTab)
 
   return (
-    <div className={`p-1.5 bg-bg-dark/40 backdrop-blur-2xl rounded-3xl border border-white/10 flex relative ${className}`}>
+    <div className={`spatial-panel p-1.5 flex relative ${className}`}>
       {/* Sliding Background Pill */}
       <div
-        className="absolute top-1.5 bottom-1.5 bg-white/[0.08] backdrop-blur-md rounded-xl transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-white/10"
+        className="absolute top-1.5 bottom-1.5 bg-white/[0.08] backdrop-blur-md rounded-[26px] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-[0_4px_12px_rgba(0,0,0,0.2)] border border-white/10"
         style={{
           width: `calc(${100 / tabs.length}% - 12px)`,
           left: `calc(${(activeIndex * 100) / tabs.length}% + 6px)`,

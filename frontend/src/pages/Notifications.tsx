@@ -246,11 +246,11 @@ const Notifications = () => {
   })
 
   return (
-    <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-bg-dark">
+    <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-transparent">
       {/* Main Column */}
-      <div className="w-full max-w-[600px] min-h-screen relative flex flex-col bg-bg-dark">
+      <div className="w-full max-w-[600px] min-h-screen relative flex flex-col bg-transparent">
         {/* Header (not sticky) */}
-        <div className="bg-black/70 backdrop-blur-xl">
+        <div className="bg-transparent">
           <div className="flex items-center justify-between px-4 py-3">
             <h2 className="text-xl font-bold cursor-pointer hidden sm:block">Notifications</h2>
             <div className="w-8 h-8 rounded-full bg-white/10 sm:hidden flex items-center justify-center overflow-hidden">
@@ -258,14 +258,14 @@ const Notifications = () => {
             </div>
             <button
               onClick={handleMarkAllAsRead}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white border border-white/15 rounded-full text-sm font-medium hover:bg-white/20 transition"
+              className="hidden sm:inline-flex items-center gap-2 spatial-button px-4 py-1.5 text-sm font-medium"
             >
               Mark all as read
             </button>
             <button
               onClick={handleDeleteAll}
               disabled={isDeletingAll}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white border border-white/15 rounded-full text-sm font-medium hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hidden sm:inline-flex items-center gap-2 spatial-button px-4 py-1.5 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDeletingAll ? 'Deleting…' : 'Clear all'}
             </button>
@@ -295,7 +295,7 @@ const Notifications = () => {
               <p className="text-gray-500 mb-4">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+                className="spatial-button px-4 py-2"
               >
                 Try again
               </button>
@@ -331,7 +331,7 @@ const Notifications = () => {
                   {today.length > 0 && (
                     <section>
                       <h3 className="text-lg font-semibold text-white/80 mb-3">Today</h3>
-                      <Card className="rounded-[28px] border border-transparent bg-[#050505]/90 p-0 overflow-hidden">
+                      <Card className="p-0 overflow-hidden">
                         <div>
                           {today.map((notification: AppNotification) => (
                             <div key={notification._id} className="px-4 py-4">
@@ -346,7 +346,7 @@ const Notifications = () => {
                   {earlier.length > 0 && (
                     <section>
                       <h3 className="text-lg font-semibold text-white/80 mb-3">Earlier</h3>
-                      <Card className="rounded-[28px] border border-transparent bg-[#050505]/90 p-0 overflow-hidden">
+                      <Card className="p-0 overflow-hidden">
                         <div>
                           {earlier.map((notification: AppNotification) => (
                             <div key={notification._id} className="px-4 py-4">

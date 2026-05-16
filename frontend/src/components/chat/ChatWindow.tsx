@@ -193,11 +193,11 @@ const ChatWindow = ({ isMobileListVisible, setIsMobileListVisible }: ChatWindowP
       : null
 
   return (
-    <div className={`flex-1 flex flex-col bg-bg-dark min-w-0 ${isMobileListVisible ? 'hidden sm:flex' : 'flex'}`}>
+    <div className={`flex-1 flex flex-col bg-transparent min-w-0 ${isMobileListVisible ? 'hidden sm:flex' : 'flex'}`}>
       {activeChat ? (
         <>
           {/* Chat Header */}
-          <div className="h-[72px] px-4 sm:px-6 flex items-center justify-between border-b border-white/10 bg-bg-dark/80 backdrop-blur-xl sticky top-0 z-10 flex-shrink-0">
+          <div className="h-[72px] px-4 sm:px-6 flex items-center justify-between border-b border-white/10 bg-transparent sticky top-0 z-10 flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => setIsMobileListVisible(true)}
@@ -281,7 +281,7 @@ const ChatWindow = ({ isMobileListVisible, setIsMobileListVisible }: ChatWindowP
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-bg-dark border-t border-white/10 flex-shrink-0">
+          <div className="p-4 bg-transparent border-t border-white/10 flex-shrink-0">
             {attachments.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {attachments.map((attachment: Attachment) => (

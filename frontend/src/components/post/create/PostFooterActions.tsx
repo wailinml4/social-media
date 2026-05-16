@@ -19,7 +19,7 @@ const PostFooterActions = ({
   isPosting = false,
 }: PostFooterActionsProps) => {
   return (
-    <div className="relative border-t border-white/5 bg-bg-dark px-4 py-3 sm:px-5">
+    <div className="relative border-t border-white/5 bg-transparent px-4 py-3 sm:px-5">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-white/45">
           <button

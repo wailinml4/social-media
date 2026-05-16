@@ -446,7 +446,7 @@ const PostModal = () => {
       {/* Modal Content */}
       <div
         ref={contentRef}
-        className="relative w-full max-w-6xl h-full max-h-[90vh] bg-[#050505] border border-white/10 rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+        className="relative w-full max-w-6xl h-full max-h-[90vh] spatial-panel flex flex-col md:flex-row p-0 overflow-hidden"
       >
         {/* Close Button Mobile */}
         <button
@@ -460,7 +460,7 @@ const PostModal = () => {
         <PostModalMedia post={post} />
 
         {/* RIGHT: Detail Section */}
-        <div className="w-full md:w-[400px] flex flex-col bg-bg-dark border-l border-white/10">
+        <div className="w-full md:w-[400px] flex flex-col bg-transparent border-l border-white/10">
           <PostModalHeader
             post={post}
             onClose={handleClose}

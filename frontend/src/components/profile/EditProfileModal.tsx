@@ -190,7 +190,7 @@ const EditProfileModal = () => {
 
       <div
         ref={modalRef}
-        className="relative flex h-[100dvh] w-full flex-col overflow-hidden border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:h-auto sm:max-h-[85vh] sm:max-w-[540px] sm:rounded-3xl"
+        className="relative flex h-[100dvh] w-full flex-col spatial-panel sm:h-auto sm:max-h-[85vh] sm:max-w-[540px]"
       >
         {/* Header */}
         <div className="relative flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-5">
@@ -223,7 +223,7 @@ const EditProfileModal = () => {
           </div>
 
           {/* Footer */}
-          <div className="relative border-t border-white/5 bg-bg-dark px-4 py-3 sm:px-5">
+          <div className="relative border-t border-white/5 bg-transparent px-4 py-3 sm:px-5">
             <div className="flex items-center justify-between gap-4">
               <button
                 type="button"

@@ -73,7 +73,7 @@ const SearchBar = ({ className = '' }: SearchBarProps) => {
           value={query}
           onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)}
           placeholder="Search users"
-          className="w-full rounded-full border border-white/10 bg-white/[0.05] py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/28 focus:border-white/20 focus:bg-white/[0.08] focus:outline-none"
+          className="w-full rounded-full border border-white/10 bg-white/[0.05] py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/28 focus:border-primary/50 focus:bg-white/[0.08] focus:outline-none transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
         />
         {query && (
           <button
@@ -88,7 +88,7 @@ const SearchBar = ({ className = '' }: SearchBarProps) => {
       </div>
 
       {query.trim() !== '' && (
-        <div className="mt-2 max-h-72 overflow-y-auto rounded-3xl border border-white/10 bg-[#050505] p-2 shadow-xl">
+        <div className="mt-2 max-h-72 overflow-y-auto spatial-panel p-2 shadow-2xl">
           {loading ? (
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">Searching...</div>
           ) : error ? (
@@ -102,7 +102,7 @@ const SearchBar = ({ className = '' }: SearchBarProps) => {
                   type="button"
                   key={user._id}
                   onClick={() => handleSelectUser(user._id)}
-                  className="flex w-full items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-3 py-3 text-left transition hover:bg-white/10"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-left transition-all duration-200 hover:bg-white/10 hover:border-white/10 group"
                 >
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-white/10">
                     <img src={user.profilePicture || defaultAvatar} alt={user.fullName} className="h-full w-full object-cover" />

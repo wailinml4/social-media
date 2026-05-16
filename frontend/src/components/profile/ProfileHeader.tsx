@@ -63,7 +63,7 @@ const ProfileHeader = ({ user, isOwnProfile, onAvatarClick, hasStory = false }: 
 
   return (
     <div className="px-4 md:px-6 mt-8">
-      <div className="relative rounded-[28px] bg-[#050505]/80 border border-white/6 backdrop-blur-xl overflow-hidden shadow-lg">
+      <div className="relative spatial-panel overflow-hidden">
         {/* Cover Image */}
         <div className="relative h-44 md:h-56 overflow-hidden rounded-t-[28px]">
           {user.coverPicture ? (
@@ -80,9 +80,9 @@ const ProfileHeader = ({ user, isOwnProfile, onAvatarClick, hasStory = false }: 
             <button
               type="button"
               onClick={onAvatarClick}
-              className={`profile-header-anim w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary ${hasStory ? 'p-[2px] bg-gradient-to-br from-primary to-secondary' : 'border-4 border-[#050505]'}`}
+              className={`profile-header-anim w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary ${hasStory ? 'p-[2px] bg-gradient-to-br from-primary to-secondary' : 'border-4 border-black/50'}`}
             >
-              <div className={`w-full h-full rounded-full overflow-hidden ${hasStory ? 'bg-[#050505]' : ''}`}>
+              <div className={`w-full h-full rounded-full overflow-hidden ${hasStory ? 'bg-black/50' : ''}`}>
                 {user.profilePicture ? (
                   <img src={user.profilePicture} alt={user.fullName} className="w-full h-full object-cover" />
                 ) : (

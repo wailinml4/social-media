@@ -3,7 +3,7 @@ import { nonEmptyString, emailSchema, passwordSchema } from './common.schema'
 
 export const signupSchema = z
   .object({
-    name: nonEmptyString('Name').max(100, 'Name is too long'),
+    fullName: nonEmptyString('Full name').max(100, 'Full name is too long'),
     username: z
       .string()
       .min(3, 'Username must be at least 3 characters')

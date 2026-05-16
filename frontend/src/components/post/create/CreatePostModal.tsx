@@ -197,7 +197,7 @@ const CreatePostModal = () => {
 
       <div
         ref={modalRef}
-        className="relative flex h-[100dvh] w-full flex-col overflow-hidden border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:h-auto sm:max-h-[78vh] sm:max-w-[520px] sm:rounded-3xl"
+        className="relative flex h-[100dvh] w-full flex-col spatial-panel sm:h-auto sm:max-h-[78vh] sm:max-w-[520px]"
       >
         <CreatePostHeader onClose={closeCreatePostModal} />
 

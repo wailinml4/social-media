@@ -29,7 +29,7 @@ const SignUp = () => {
 
   const onSubmit = async (data: SignupInput) => {
     try {
-      await signup(data.name, data.username, data.email, data.password, data.confirmPassword)
+      await signup(data.fullName, data.username, data.email, data.password, data.confirmPassword)
       navigate('/verify-email')
     } catch {
       // Error is handled by context and displayed via error state
@@ -55,7 +55,7 @@ const SignUp = () => {
         </div>
       </div>
 
-      <div className="auth-stagger w-full max-w-[400px] bg-black/40 backdrop-blur-2xl border border-white/[0.08] rounded-[32px] p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+      <div className="auth-stagger w-full max-w-[400px] spatial-panel p-6 sm:p-8">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-semibold text-white tracking-tight mb-1">Create an account</h1>
           <p className="text-text-dim text-sm">Join us and start your journey today</p>
@@ -67,15 +67,15 @@ const SignUp = () => {
               <User size={18} />
             </div>
             <input
-              id="name"
+              id="fullName"
               type="text"
-              {...register('name')}
+              {...register('fullName')}
               className={`w-full bg-white/[0.03] border rounded-2xl py-3 pl-11 pr-4 text-white placeholder-white/30 outline-none focus:border-primary/50 focus:bg-primary/[0.02] transition-all duration-300 ${
-                errors.name ? 'border-red-500' : 'border-white/10'
+                errors.fullName ? 'border-red-500' : 'border-white/10'
               }`}
               placeholder="Full name"
             />
-            {errors.name && <p className="mt-1 text-xs text-red-400">{errors.name.message?.toString()}</p>}
+            {errors.fullName && <p className="mt-1 text-xs text-red-400">{errors.fullName.message?.toString()}</p>}
           </div>
 
           <div className="auth-stagger relative group">
@@ -134,7 +134,7 @@ const SignUp = () => {
               id="confirmPassword"
               type="password"
               {...register('confirmPassword')}
-              className={`w-full bg-white/[0.03] border rounded-2xl py-3 pl-11 pr-4 text-white placeholder-white/30 outline-none transition-all duration-300 ${
+              className={`w-full bg-white/[0.03] border rounded-2xl py-3 pl-11 pr-4 text-white placeholder-white/30 outline-none focus:border-primary/50 focus:bg-primary/[0.02] transition-all duration-300 ${
                 errors.confirmPassword ? 'border-red-500' : 'border-white/10'
               }`}
               placeholder="Confirm password"

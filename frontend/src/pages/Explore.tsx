@@ -59,13 +59,13 @@ const Explore = () => {
   }, [currentPage, explorePosts, fetchExplorePosts, isLoadingExplorePosts, hasMore])
 
   return (
-    <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-bg-dark">
-      <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-bg-dark">
-        <div className="bg-black/70 backdrop-blur-xl pt-6 pb-4 px-6 mb-6 rounded-2xl">
+    <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-transparent">
+      <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-transparent">
+        <div className="spatial-panel mx-4 md:mx-6 mt-6 py-5 px-6 mb-6">
           <h1 className="text-2xl font-bold text-white">Explore</h1>
         </div>
 
-        <div className="pb-10">
+        <div className="pb-10 px-4 md:px-6">
           <PostGrid items={explorePosts || []} large />
 
           {isLoadingExplorePosts && (

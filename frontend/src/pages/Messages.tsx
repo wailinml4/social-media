@@ -88,7 +88,8 @@ const Messages = () => {
   }
 
   return (
-    <div className="flex w-full h-screen sm:h-[calc(100vh)] overflow-hidden pb-16 sm:pb-0 bg-bg-dark">
+    <div className="flex justify-center w-full h-screen sm:py-6 sm:px-6 bg-transparent">
+      <div className="flex w-full max-w-[1200px] h-full sm:h-[calc(100vh-3rem)] spatial-panel overflow-hidden pb-16 sm:pb-0">
       <ChatSidebar
         isMobileListVisible={isMobileListVisible}
         isChatListCollapsed={isChatListCollapsed}
@@ -98,6 +99,7 @@ const Messages = () => {
       />
 
       <ChatWindow isMobileListVisible={isMobileListVisible} setIsMobileListVisible={setIsMobileListVisible} />
+      </div>
     </div>
   )
 }

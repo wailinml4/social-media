@@ -166,8 +166,8 @@ const Profile = () => {
 
   if (error || !user) {
     return (
-      <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-bg-dark">
-        <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-bg-dark p-8">
+      <div className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-transparent">
+        <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-transparent p-8">
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">⚠️</span>
@@ -176,7 +176,7 @@ const Profile = () => {
             <p className="text-gray-500 mb-4">{error || 'Profile not found'}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+              className="spatial-button px-4 py-2"
             >
               Try again
             </button>
@@ -187,8 +187,8 @@ const Profile = () => {
   }
 
   return (
-    <div ref={profileRef} className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-bg-dark">
-      <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-bg-dark">
+    <div ref={profileRef} className="flex justify-center w-full min-h-screen pb-20 sm:pb-0 bg-transparent">
+      <div className="w-full max-w-[1100px] min-h-screen relative flex flex-col bg-transparent">
         <ProfileHeader user={user} isOwnProfile={isOwnProfile} hasStory={userStories.length > 0} onAvatarClick={openProfileStories} />
 
         {/* Stats Grid */}
@@ -200,12 +200,12 @@ const Profile = () => {
             tabs={profileTabs}
             activeTab={activeTab}
             onTabChange={onTabChange}
-            className="-mx-4 md:-mx-6 px-4 md:px-6 bg-[#050505]/90 backdrop-blur-md mb-6"
+            className="-mx-4 md:-mx-6 px-4 md:px-6 mb-6"
           />
         </div>
 
         {/* Tab Content */}
-        <div ref={contentRef} className="pb-10">
+        <div ref={contentRef} className="pb-10 px-4 md:px-6">
           {activeTab === 'posts' && <PostGrid items={userPosts || []} user={user} large />}
           {activeTab === 'liked' &&
             ((likedPosts?.length || 0) > 0 ? (

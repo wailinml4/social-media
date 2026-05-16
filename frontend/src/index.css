@@ -2,11 +2,11 @@
 
 @theme {
   --color-primary: #0a84ff;
-  --color-secondary: #5e5ce6;
+  --color-secondary: #bf5af2;
   --color-bg-dark: #000000;
-  --color-text-dim: #9ca3af;
-  --color-surface: rgba(255, 255, 255, 0.05);
-  --color-panel-edge: rgba(255, 255, 255, 0.08);
+  --color-text-dim: rgba(255, 255, 255, 0.65);
+  --color-surface: rgba(255, 255, 255, 0.08); /* Frosted glass base */
+  --color-panel-edge: rgba(255, 255, 255, 0.15); /* Sharper white edge */
 
   --font-sans: 'Inter', system-ui, sans-serif;
 }
@@ -17,13 +17,39 @@
   }
 
   body {
-    @apply bg-bg-dark text-white font-sans antialiased;
+    @apply text-white font-sans antialiased min-h-screen;
+    background-color: #020204; /* Slightly darker to let colors pop */
+    /* Add a subtle moving mesh gradient effect */
+    background-image: 
+      radial-gradient(circle at var(--pos-x, 20%) var(--pos-y, 10%), rgba(10, 132, 255, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at var(--pos-x2, 80%) var(--pos-y2, 90%), rgba(191, 90, 242, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
+    background-attachment: fixed;
+    animation: ambientShift 20s ease-in-out infinite alternate;
+  }
+
+  /* Define the animation for the background */
+  @keyframes ambientShift {
+    0% {
+      --pos-x: 10%; --pos-y: 10%;
+      --pos-x2: 90%; --pos-y2: 90%;
+    }
+    100% {
+      --pos-x: 30%; --pos-y: 30%;
+      --pos-x2: 70%; --pos-y2: 70%;
+    }
   }
 
   ::selection {
-    @apply bg-primary/30;
+    @apply bg-primary/40;
   }
 }
+
+/* Enable animating CSS variables for the background */
+@property --pos-x { syntax: '<percentage>'; inherits: false; initial-value: 20%; }
+@property --pos-y { syntax: '<percentage>'; inherits: false; initial-value: 10%; }
+@property --pos-x2 { syntax: '<percentage>'; inherits: false; initial-value: 80%; }
+@property --pos-y2 { syntax: '<percentage>'; inherits: false; initial-value: 90%; }
 
 @layer utilities {
   .no-scrollbar {
@@ -35,14 +61,34 @@
     display: none;
   }
 
+  /* Refined Spatial UI Panel */
+  .spatial-panel {
+    /* Lower opacity bg + higher blur = better glass */
+    @apply bg-white/[0.03] backdrop-blur-3xl rounded-[32px] overflow-hidden;
+    
+    /* Simulate overhead lighting: consistent border with layered inner highlights */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    
+    /* Layered shadows: ambient drop shadow + sharp top inner highlight + subtle secondary glow */
+    box-shadow: 
+      inset 0 1px 1px rgba(255, 255, 255, 0.15), 
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+      0 16px 40px rgba(0,0,0,0.5);
+  }
+
+  .spatial-button {
+    @apply bg-white/[0.06] hover:bg-white/[0.1] backdrop-blur-2xl transition-all duration-300 rounded-2xl;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
   .home-feed-shell::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-      radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 38%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 26%);
+      radial-gradient(ellipse at top, rgba(255, 255, 255, 0.08), transparent 40%);
     opacity: 0.8;
   }
 }

@@ -58,7 +58,7 @@ const Login = () => {
       </div>
 
       {/* Auth Card */}
-      <div className="auth-stagger w-full max-w-[400px] bg-black/40 backdrop-blur-2xl border border-white/[0.08] rounded-[32px] p-8 sm:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+      <div className="auth-stagger w-full max-w-[400px] spatial-panel p-8 sm:p-10">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold text-white tracking-tight mb-2">Welcome back</h1>
           <p className="text-text-dim text-sm">Enter your details to sign in to your account</p>

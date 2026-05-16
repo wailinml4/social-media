@@ -36,7 +36,7 @@ const Landing = () => {
   )
 
   return (
-    <div ref={container} className="bg-bg-dark text-white selection:bg-primary/30">
+    <div ref={container} className="bg-transparent text-white selection:bg-primary/30">
       <Navbar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
       <main>

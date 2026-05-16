@@ -196,7 +196,7 @@ const PostCard = ({ post }: PostCardProps) => {
   return (
     <article
       onClick={handleOpenPost}
-      className="post-card w-full rounded-3xl border border-white/10 bg-[#070707] shadow-[0_24px_80px_rgba(0,0,0,0.38)] transition hover:-translate-y-0.5 hover:shadow-[0_30px_110px_rgba(0,0,0,0.45)] duration-300 overflow-hidden cursor-pointer"
+      className="spatial-panel post-card w-full transition hover:-translate-y-0.5 hover:shadow-[0_16px_50px_rgba(0,0,0,0.6)] duration-300 cursor-pointer"
     >
       <div className="relative p-5" ref={menuRef}>
         <PostAuthor

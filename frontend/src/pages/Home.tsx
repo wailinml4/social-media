@@ -118,18 +118,18 @@ const Home = () => {
   }, [currentIsLoading, currentPosts, activeTab, fetchFollowingPosts, fetchFriendsPosts, hasMore, loadMorePosts])
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip pb-20 sm:pb-0 bg-bg-dark flex justify-center">
+    <div className="relative min-h-screen w-full overflow-x-clip pb-20 sm:pb-0 flex justify-center">
       {/* Main Feed Column */}
-      <div className="relative flex min-h-screen w-full flex-col bg-bg-dark" style={{ maxWidth: `${FEED_MAX_WIDTH}px` }}>
+      <div className="relative flex min-h-screen w-full flex-col bg-transparent" style={{ maxWidth: `${FEED_MAX_WIDTH}px` }}>
         {/* Header (not sticky) */}
-        <div className="bg-black/70 backdrop-blur-xl pt-6 pb-4 space-y-4">
+        <div className="bg-transparent px-4 sm:px-0 pt-6 pb-4 space-y-4">
           <Tabs tabs={homeTabs} activeTab={activeTab} onTabChange={onTabChange} />
 
           <StoriesBar activeTab={activeTab} />
         </div>
 
         {/* Feed List */}
-        <div ref={feedRef} className="flex-1 space-y-6">
+        <div ref={feedRef} className="flex-1 px-4 sm:px-0 space-y-6">
           {error ? (
             <div className="p-8 text-center">
               <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -139,7 +139,7 @@ const Home = () => {
               <p className="text-gray-500 mb-4">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+                className="spatial-button px-4 py-2"
               >
                 Try again
               </button>

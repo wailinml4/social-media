@@ -110,13 +110,13 @@ const ChatSidebar = ({
 
   return (
     <div
-      className={`flex-shrink-0 flex flex-col border-r border-white/10 bg-bg-dark/95 backdrop-blur-xl z-20 transition-all duration-300 ${
+      className={`flex-shrink-0 flex flex-col border-r border-white/10 bg-transparent z-20 transition-all duration-300 ${
         !isMobileListVisible ? '-translate-x-full sm:translate-x-0 hidden sm:flex' : 'flex w-full'
       } ${isChatListCollapsed ? 'sm:w-[80px]' : 'sm:w-[320px] lg:w-[380px]'}`}
     >
       {/* Sidebar Header */}
       <div
-        className={`px-4 py-3 sticky top-0 bg-bg-dark/90 backdrop-blur-xl z-10 border-b border-white/10 flex flex-col ${isChatListCollapsed ? 'items-center' : ''}`}
+        className={`px-4 py-3 sticky top-0 bg-transparent z-10 border-b border-white/10 flex flex-col ${isChatListCollapsed ? 'items-center' : ''}`}
       >
         <div className={`flex items-center w-full mb-4 mt-2 ${isChatListCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isChatListCollapsed && (

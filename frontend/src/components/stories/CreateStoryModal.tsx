@@ -122,7 +122,7 @@ const CreateStoryModal = () => {
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" onClick={closeCreateStoryModal} />
 
-      <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#070707] shadow-2xl">
+      <div className="relative z-10 w-full max-w-2xl spatial-panel">
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold text-white">Create Story</h2>
@@ -140,7 +140,7 @@ const CreateStoryModal = () => {
 
         <div className="space-y-4 p-5">
           <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
-            <div className="rounded-3xl border border-white/10 bg-neutral-950 p-4 text-sm text-white/70">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-4 text-sm text-white/70">
               <p className="mb-3 text-white">Upload story media</p>
               <p className="mb-4">Stories expire after 24 hours and are visible to people you follow.</p>
               <button
@@ -158,7 +158,7 @@ const CreateStoryModal = () => {
           <div className="grid gap-4">
             {mediaItems.length ? (
               mediaItems.map(item => (
-                <div key={item.id} className="rounded-3xl border border-white/10 bg-neutral-950 p-4">
+                <div key={item.id} className="rounded-3xl border border-white/10 bg-white/[0.02] p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="mb-3 overflow-hidden rounded-2xl bg-black">
@@ -174,7 +174,7 @@ const CreateStoryModal = () => {
                         rows={2}
                         value={item.caption}
                         onChange={(event: ChangeEvent<HTMLTextAreaElement>) => updateCaption(item.id, event.target.value)}
-                        className="w-full resize-none rounded-2xl border border-white/10 bg-[#0f0f0f] px-4 py-3 text-sm text-white outline-none transition focus:border-primary"
+                        className="w-full resize-none rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-primary"
                         placeholder="Add a caption (optional)"
                       />
                     </div>
@@ -191,7 +191,7 @@ const CreateStoryModal = () => {
                 </div>
               ))
             ) : (
-              <div className="rounded-3xl border border-dashed border-white/15 bg-neutral-950 p-6 text-center text-white/60">
+              <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-center text-white/60">
                 Select image or video files to create your story.
               </div>
             )}

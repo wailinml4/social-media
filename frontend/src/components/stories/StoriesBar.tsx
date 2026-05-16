@@ -207,8 +207,8 @@ const StoriesBar = ({ activeTab = 'following' }: StoriesBarProps) => {
 
   return (
     <>
-      <div className="relative w-full rounded-3xl border border-white/10 bg-[#050505]/80 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.18)]">
-        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-bg-dark to-transparent pointer-events-none z-10" />
+      <div className="relative w-full spatial-panel p-4">
+        <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-black/20 to-transparent pointer-events-none z-10" />
 
         <div ref={scrollRef} className="flex items-end gap-4 overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none' }}>
           {isLoading ? (

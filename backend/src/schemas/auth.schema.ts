@@ -10,7 +10,7 @@ export const usernameSchema = () =>
 
 export const signupSchema = z
   .object({
-    name: nonEmptyString('Name').max(100, 'Name is too long'),
+    fullName: nonEmptyString('Full name').max(100, 'Full name is too long'),
     username: usernameSchema(),
     email: emailSchema(),
     password: passwordSchema(8).regex(

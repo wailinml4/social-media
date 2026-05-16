@@ -142,7 +142,7 @@ const SharePostModal = () => {
     <div className="fixed inset-0 z-[140] flex items-end justify-center sm:items-center sm:p-6">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xl" onClick={closeShareModal} />
       <div
-        className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+        className="relative w-full max-w-2xl overflow-hidden spatial-panel shadow-2xl"
         onClick={(event: MouseEvent) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
@@ -161,7 +161,7 @@ const SharePostModal = () => {
         </div>
 
         <div className="px-5 py-4 border-b border-white/10">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 overflow-hidden rounded-2xl bg-white/10">
                 {sharedPost?.media?.[0]?.url || sharedPost?.images?.[0] ? (
@@ -199,7 +199,7 @@ const SharePostModal = () => {
               value={query}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
               placeholder="Search people to share with"
-              className="w-full rounded-full border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/40 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full rounded-full border border-white/10 bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/40 focus:border-primary/50 focus:bg-white/[0.08] focus:outline-none transition-all duration-300 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ const SharePostModal = () => {
                     key={userResult._id}
                     onClick={() => handleUserClick(userResult)}
                     disabled={isSharing}
-                    className="flex w-full items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-left transition-all duration-200 hover:bg-white/10 hover:border-white/10 disabled:cursor-not-allowed disabled:opacity-60 group shadow-sm"
                   >
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/10">
                       <img
